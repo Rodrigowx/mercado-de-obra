@@ -1,0 +1,17 @@
+{
+  "private": true,
+  "name": "mercado-de-obra",
+  "version": "1.0.0",
+  "description": "",
+  "workspaces": [
+    "apps/*"
+  ],
+  "scripts": {
+    "start:backend": "yarn workspace backend start",
+    "start:frontend": "yarn workspace frontend dev"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "main": "index.js"
+}

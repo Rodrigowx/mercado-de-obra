@@ -1,0 +1,108 @@
+// Definição do datasource e generator
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// Modelo User
+model User {
+  id           Int          @id @default(autoincrement())
+  email        String       @unique
+  password     String
+  name         String
+  phone        String
+  role         Role
+  professional Professional? // Relacionamento opcional com Professional
+  client       Client?       // Relacionamento opcional com Client
+  createdAt    DateTime      @default(now())
+}
+
+// Modelo Professional
+model Professional {
+  id           Int       @id @default(autoincrement())
+  userId       Int       @unique
+  user         User      @relation(fields: [userId], references: [id]) // Relacionamento com User
+  profileImage String?
+  skills       Skill[]   
+  portfolio    Portfolio[]
+  pricing      Pricing[]
+  subscription Subscription?
+  location     Location? 
+}
+
+// Modelo Client
+model Client {
+  id     Int     @id @default(autoincrement())
+  userId Int     @unique
+  user   User    @relation(fields: [userId], references: [id]) // Relacionamento com User
+}
+
+// Modelo Subscription
+model Subscription {
+  id            Int          @id @default(autoincrement())
+  professionalId Int         @unique
+  type          String       // Ex: "Basic", "Premium"
+  startDate     DateTime
+  endDate       DateTime
+  isActive      Boolean      @default(true)
+  professional  Professional @relation(fields: [professionalId], references: [id])
+}
+
+// Modelo Skill
+model Skill {
+  id            Int       @id @default(autoincrement())
+  name          String
+  professional  Professional @relation(fields: [professionalId], references: [id])
+  professionalId Int
+}
+
+// Modelo Portfolio
+model Portfolio {
+  id            Int       @id @default(autoincrement())
+  professionalId Int
+  title         String
+  description   String
+  images        Image[]   // Um portfólio pode ter várias imagens
+  professional  Professional @relation(fields: [professionalId], references: [id])
+}
+
+// Modelo Image
+model Image {
+  id            Int        @id @default(autoincrement())
+  url           String     // URL da imagem ou caminho
+  portfolioId   Int
+  portfolio     Portfolio  @relation(fields: [portfolioId], references: [id])
+}
+
+// Modelo Pricing
+model Pricing {
+  id            Int       @id @default(autoincrement())
+  professionalId Int
+  laborCost     Float     // Preço da mão de obra
+  materialList  String[]  // Lista de materiais
+  materialCost  Float     // Custo dos materiais
+  totalCost     Float     // Soma total de mão de obra + materiais
+  professional  Professional @relation(fields: [professionalId], references: [id])
+}
+
+// Modelo Location
+model Location {
+  id            Int       @id @default(autoincrement())
+  professionalId Int      @unique  // Chave única para garantir um-para-um
+  latitude      Float
+  longitude     Float
+  city          String
+  state         String
+  country       String
+  professional  Professional @relation(fields: [professionalId], references: [id])
+}
+
+// Enum Role
+enum Role {
+  CLIENT
+  PROFESSIONAL
+}

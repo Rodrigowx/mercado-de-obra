@@ -1,0 +1,66 @@
+# ------------------------------------------------------
+# THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
+# ------------------------------------------------------
+
+type LoginResponse {
+  accessToken: String!
+}
+
+type User {
+  id: Int!
+  email: String!
+  name: String!
+  phone: String
+  role: Role!
+  createdAt: DateTime!
+}
+
+"""User role - can be CLIENT or PROFESSIONAL"""
+enum Role {
+  CLIENT
+  PROFESSIONAL
+}
+
+"""
+A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
+"""
+scalar DateTime
+
+type Query {
+  user(id: Float!): User
+}
+
+type Mutation {
+  createUser(createUserDto: CreateUserDto!): User!
+  updateUser(id: Float!, updateUserDto: UpdateUserDto!): User!
+  deleteUser(id: Float!): Boolean!
+  login(loginUserDto: LoginUserDto!): LoginResponse!
+  register(registerUserDto: RegisterUserDto!): LoginResponse!
+}
+
+input CreateUserDto {
+  email: String!
+  name: String!
+  password: String!
+  phoneNumber: String!
+  role: String!
+}
+
+input UpdateUserDto {
+  email: String
+  name: String
+  phoneNumber: String
+}
+
+input LoginUserDto {
+  email: String!
+  password: String!
+}
+
+input RegisterUserDto {
+  email: String!
+  name: String!
+  password: String!
+  phoneNumber: String!
+  role: String!
+}
