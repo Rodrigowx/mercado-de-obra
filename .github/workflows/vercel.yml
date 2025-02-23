@@ -3,7 +3,7 @@ name: Deploy Frontend na Vercel
 on:
   push:
     branches:
-      - master
+      - main  # Altere se necessário
 
 jobs:
   deploy:
@@ -16,5 +16,8 @@ jobs:
       - name: Instalar Vercel CLI
         run: npm install -g vercel
 
+      - name: Configurar Projeto na Vercel
+        run: vercel link --yes --token ${{ secrets.VERCEL_TOKEN }}
+
       - name: Deploy na Vercel
-        run: vercel --prod --token ${{ secrets.VERCEL_TOKEN }}
+        run: vercel --prod --yes --token ${{ secrets.VERCEL_TOKEN }}
