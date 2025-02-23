@@ -1,42 +1,49 @@
-# Docs for the Azure Web Apps Deploy action: https://github.com/Azure/webapps-deploy
-# More GitHub Actions for Azure: https://github.com/Azure/actions
-
-name: Build and deploy Node.js app to Azure Web App - backend-mercado-de-obra
+name: Deploy Backend na Azure
 
 on:
   push:
     branches:
-      - master
+      - main
   workflow_dispatch:
 
 jobs:
   build:
     runs-on: ubuntu-latest
     permissions:
-      contents: read #This is required for actions/checkout
+      contents: read
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout do código
+        uses: actions/checkout@v4
 
-      - name: Set up Node.js version
+      - name: Configurar Node.js
         uses: actions/setup-node@v3
         with:
           node-version: '22.x'
 
-      - name: npm install, build, and test
+      - name: Instalar dependências
         run: |
+          cd apps/backend  # ENTRAR NA PASTA DO BACKEND
           npm install
-          npm run build --if-present
-          npm run test --if-present
 
-      - name: Zip artifact for deployment
-        run: zip release.zip ./* -r
+      - name: Gerar build
+        run: |
+          cd apps/backend  # ENTRAR NA PASTA DO BACKEND
+          npm run build
 
-      - name: Upload artifact for deployment job
+      - name: Criar arquivo .env com variáveis do Azure
+        run: |
+          cd apps/backend  # ENTRAR NA PASTA DO BACKEND
+          echo "DATABASE_URL=${{ secrets.DATABASE_URL }}" >> .env
+          echo "NODE_ENV=production" >> .env
+          echo "PORT=5000" >> .env
+        shell: bash
+
+      - name: Upload artifact para deployment
         uses: actions/upload-artifact@v4
         with:
-          name: node-app
-          path: release.zip
+          name: backend-app
+          path: apps/backend  # GARANTIR QUE ESTAMOS PEGANDO OS ARQUIVOS CERTOS
 
   deploy:
     runs-on: ubuntu-latest
@@ -45,30 +52,26 @@ jobs:
       name: 'Production'
       url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
     permissions:
-      id-token: write #This is required for requesting the JWT
-      contents: read #This is required for actions/checkout
+      id-token: write
+      contents: read
 
     steps:
-      - name: Download artifact from build job
+      - name: Baixar artifact da build
         uses: actions/download-artifact@v4
         with:
-          name: node-app
+          name: backend-app
 
-      - name: Unzip artifact for deployment
-        run: unzip release.zip
-      
-      - name: Login to Azure
+      - name: Login no Azure
         uses: azure/login@v2
         with:
-          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_EB4C6A6F4C874354A616BCCF2233959C }}
-          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_8A795A19DD504934A4471104571ECB30 }}
-          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_6292D88CCC9B4AB29FAC3884FEA94B3B }}
+          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID }}
+          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID }}
+          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID }}
 
-      - name: 'Deploy to Azure Web App'
+      - name: Deploy no Azure App Service
         id: deploy-to-webapp
         uses: azure/webapps-deploy@v3
         with:
           app-name: 'backend-mercado-de-obra'
           slot-name: 'Production'
           package: .
-          
