@@ -1,0 +1,20 @@
+name: Deploy Frontend na Vercel
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout do código
+        uses: actions/checkout@v3
+
+      - name: Instalar Vercel CLI
+        run: npm install -g vercel
+
+      - name: Deploy na Vercel
+        run: vercel --prod --token ${{ secrets.VERCEL_TOKEN }}
