@@ -1,0 +1,50 @@
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Professional {
+  id            Int            @id @map("_id") @db.Int
+  name          String
+  role          String         @default("PROFESSIONAL")
+  conversations Conversation[] @relation("ProfessionalConversations")
+}
+
+model Client {
+  id            Int            @id @map("_id") @db.Int
+  name          String
+  role          String         @default("CLIENT")
+  conversations Conversation[] @relation("ClientConversations")
+}
+
+model Conversation {
+  id             String    @id @default(auto()) @map("_id") @db.ObjectId
+  clientId       Int       @db.Int
+  professionalId Int       @db.Int
+  status         String    @default("open")
+  createdAt      DateTime  @default(now())
+  messages       Message[]
+
+  client         Client       @relation("ClientConversations", fields: [clientId], references: [id], onDelete: Cascade)
+  professional   Professional @relation("ProfessionalConversations", fields: [professionalId], references: [id], onDelete: Cascade)
+
+  @@index([clientId])
+  @@index([professionalId])
+}
+
+model Message {
+  id             String       @id @default(auto()) @map("_id") @db.ObjectId
+  conversationId String       @db.ObjectId
+  senderId       Int          @db.Int
+  content        String
+  attachments    String[]
+  createdAt      DateTime     @default(now())
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  clientRead       Boolean      @default(false)
+  professionalRead Boolean      @default(false)
+  @@index([conversationId])
+}
