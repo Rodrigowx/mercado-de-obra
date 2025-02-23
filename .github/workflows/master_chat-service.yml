@@ -1,41 +1,61 @@
-# Docs for the Azure Web Apps Deploy action: https://github.com/Azure/webapps-deploy
-# More GitHub Actions for Azure: https://github.com/Azure/actions
+# Deploy automático do Chat-Service para o Azure Web App
 
 name: Build and deploy Node.js app to Azure Web App - chat-service
 
 on:
   push:
     branches:
-      - master
+      - master  # Altere para sua branch principal, se necessário
   workflow_dispatch:
 
 jobs:
   build:
     runs-on: ubuntu-latest
     permissions:
-      contents: read #This is required for actions/checkout
+      contents: read  # Necessário para actions/checkout
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout do código
+        uses: actions/checkout@v4
 
       - name: Set up Node.js version
         uses: actions/setup-node@v3
         with:
-          node-version: '22.x'
+          node-version: '22.x'  # Mantendo Node.js 22.x conforme solicitado
 
-      - name: npm install, build, and test
+      - name: Instalar dependências
         run: |
+          cd apps/chat-service  # Entrar na pasta do chat-service
           npm install
+
+      - name: Criar arquivo .env com variáveis do Azure (se necessário)
+        run: |
+          cd apps/chat-service  # Entrar na pasta do chat-service
+          echo "DATABASE_URL=${{ secrets.DATABASE_URL }}" >> .env
+          echo "FRONTEND_URL=${{ secrets.FRONTEND_URL }}" >> .env
+          echo "NODE_ENV=production" >> .env
+          echo "PORT=3001" >> .env
+        shell: bash
+
+      - name: Construir o projeto
+        run: |
+          cd apps/chat-service  # Entrar na pasta do chat-service
           npm run build --if-present
+
+      - name: Executar testes (opcional)
+        run: |
+          cd apps/chat-service
           npm run test --if-present
 
-      - name: Zip artifact for deployment
-        run: zip release.zip ./* -r
+      - name: Compactar para deployment
+        run: |
+          cd apps/chat-service
+          zip -r ../../release.zip .  # Criando o ZIP corretamente
 
-      - name: Upload artifact for deployment job
+      - name: Upload artifact para o job de deploy
         uses: actions/upload-artifact@v4
         with:
-          name: node-app
+          name: chat-service-app
           path: release.zip
 
   deploy:
@@ -45,30 +65,29 @@ jobs:
       name: 'Production'
       url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
     permissions:
-      id-token: write #This is required for requesting the JWT
-      contents: read #This is required for actions/checkout
+      id-token: write  # Necessário para autenticação no Azure
+      contents: read
 
     steps:
-      - name: Download artifact from build job
+      - name: Baixar artifact da build
         uses: actions/download-artifact@v4
         with:
-          name: node-app
+          name: chat-service-app
 
-      - name: Unzip artifact for deployment
+      - name: Descompactar o artifact
         run: unzip release.zip
-      
-      - name: Login to Azure
+
+      - name: Login no Azure
         uses: azure/login@v2
         with:
-          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_BF8EBD6AB9BA4F5091FFDA73D5E7AE65 }}
-          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_D42E45FD39434833980641E304937979 }}
-          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_F16FBAB6BA214F73B2AD071B4B47D89B }}
+          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID }}
+          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID }}
+          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID }}
 
-      - name: 'Deploy to Azure Web App'
+      - name: Deploy no Azure Web App
         id: deploy-to-webapp
         uses: azure/webapps-deploy@v3
         with:
-          app-name: 'chat-service'
+          app-name: 'chat-service'  # Nome do App Service no Azure
           slot-name: 'Production'
           package: .
-          
