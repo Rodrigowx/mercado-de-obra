@@ -7,11 +7,18 @@
     "apps/*"
   ],
   "scripts": {
-    "start:backend": "yarn workspace backend start",
-    "start:frontend": "yarn workspace frontend dev"
+    "install-all": "yarn install",
+    "dev": "concurrently \"yarn start:backend\" \"yarn start:frontend\"",
+    "build:all": "yarn workspaces run build",
+    "start:backend": "yarn workspace backend start:dev",
+    "start:frontend": "yarn workspace frontend dev",
+    "lint": "yarn workspaces run lint",
+    "test": "yarn workspaces run test"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "main": "index.js"
+  "dependencies": {
+    "concurrently": "^9.1.0"
+  }
 }

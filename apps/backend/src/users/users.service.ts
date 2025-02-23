@@ -1,82 +1,101 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
-import {
-  ConflictException,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+import { ConflictException, Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { Prisma, User } from '@prisma/client';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { formatPhoneNumber } from '../utils/phone-number.util'; // Função de formatação de telefone
+import { formatPhoneNumber } from '../utils/phone-number.util';
 
 @Injectable()
 export class UsersService {
   constructor(private prisma: PrismaService) {}
 
-  // Função de criação de usuário
+  async updateChatList(userId: number, chatId: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { chatIds: true },
+    });
+    if (!user) {
+      throw new NotFoundException('Profissional não encontrado.');
+    }
+  
+    const updatedChatIds = [...user.chatIds, chatId];
+  
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: { chatIds: updatedChatIds },
+    });
+  
+    return updatedChatIds;
+  }
+  
+  /**
+   * Busca a lista de chats de um profissional.
+   */
+  async getChatList(userId: number) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { chatIds: true },
+    });
+    if (!user) {
+      throw new NotFoundException('Profissional não encontrado.');
+    }
+    return user.chatIds;
+  }
+
   async create(data: CreateUserDto): Promise<User> {
     const { phoneNumber, role, ...rest } = data;
-
-    // Formatar o número de telefone antes de salvar
     const formattedPhoneNumber = formatPhoneNumber(phoneNumber);
 
     try {
-      // Criação de usuário com base no papel (cliente ou profissional)
       const user = await this.prisma.user.create({
         data: {
           ...rest,
-          phone: formattedPhoneNumber,
-          role: role,
+          phoneNumber: formattedPhoneNumber,
+          role,
         },
       });
 
-      // Verifica o role e cria o registro correspondente (cliente ou profissional)
       if (role === 'PROFESSIONAL') {
-        await this.prisma.professional.create({
-          data: {
-            userId: user.id,
-            // Defina outros campos específicos de Professional aqui
-          },
-        });
+        await this.prisma.professional.create({ data: { id: user.id } });
       } else if (role === 'CLIENT') {
-        await this.prisma.client.create({
-          data: {
-            userId: user.id,
-            // Defina outros campos específicos de Client aqui
-          },
-        });
+        await this.prisma.client.create({ data: { id: user.id } });
       }
 
       return user;
     } catch (error) {
-      // Captura erros conhecidos do Prisma
       if (error instanceof Prisma.PrismaClientKnownRequestError) {
         if (error.code === 'P2002') {
-          // Verifica se o campo duplicado é o 'email'
           const target = error.meta?.target;
-          if (Array.isArray(target) && target.includes('email')) {
-            throw new ConflictException('Este email já está em uso');
+          if (Array.isArray(target) && target.includes('email') && target.includes('role')) {
+            throw new ConflictException('Já existe um usuário com este email e este tipo de conta (role).');
           }
         }
       }
-      throw error; // Lançar outros erros se não forem relacionados ao email duplicado
+      throw error;
     }
   }
 
-  // Buscar usuário por email
   async findOneByEmail(email: string): Promise<User | null> {
+    return this.prisma.user.findFirst({ where: { email } });
+  }
+
+  async findOneByEmailAndRole(email: string, role: string): Promise<User | null> {
     return this.prisma.user.findUnique({
-      where: { email },
+      where: {
+        email_role: {
+          email,
+          role,
+        },
+      },
     });
   }
 
-  // Buscar usuário por ID
   async findOneById(id: number): Promise<User | null> {
-    const user = await this.prisma.user.findUnique({
-      where: { id },
-    });
+    if (!id) {
+      throw new BadRequestException('ID inválido ou não fornecido.');
+    }
 
+    const user = await this.prisma.user.findUnique({ where: { id } });
     if (!user) {
       throw new NotFoundException('Usuário não encontrado');
     }
@@ -84,24 +103,74 @@ export class UsersService {
     return user;
   }
 
-  // Atualizar usuário
   async update(id: number, data: UpdateUserDto): Promise<User> {
-    return await this.prisma.user.update({
-      where: { id },
-      data,
-    });
+    return this.prisma.user.update({ where: { id }, data });
   }
 
   async delete(id: number): Promise<boolean> {
-    try {
-      const user = await this.prisma.user.findUnique({ where: { id } });
-      if (!user) {
-        throw new NotFoundException('Usuário não encontrado');
-      }
-      await this.prisma.user.delete({ where: { id } });
-      return true;
-    } catch (error) {
-      throw new Error('Erro ao deletar o usuário');
+    // Verifica se o usuário existe
+    const user = await this.prisma.user.findUnique({ where: { id } });
+    if (!user) {
+      throw new NotFoundException('Usuário não encontrado');
     }
+  
+    // Deleta o usuário
+    await this.prisma.user.delete({ where: { id } });
+  
+    return true;
+  }
+
+  async savePasswordResetCode(userId: number, code: string, expiresAt: Date): Promise<void> {
+    await this.prisma.passwordResetCode.upsert({
+      where: { userId },
+      update: { code, expiresAt, validated: false },
+      create: { userId, code, expiresAt, validated: false },
+    });
+  }
+
+  async findPasswordResetCode(userId: number): Promise<{ code: string; expiresAt: Date; validated: boolean } | null> {
+    const record = await this.prisma.passwordResetCode.findUnique({ where: { userId } });
+    return record ? { code: record.code, expiresAt: record.expiresAt, validated: record.validated } : null;
+  }
+
+async markCodeAsValidated(userId: number): Promise<void> {
+  await this.prisma.passwordResetCode.update({
+    where: { userId },
+    data: { validated: true },
+  });
+}
+
+async isCodeValidated(userId: number): Promise<boolean> {
+  const record = await this.prisma.passwordResetCode.findUnique({ where: { userId } });
+  return record?.validated === true;
+}
+
+async deletePasswordResetCode(userId: number): Promise<void> {
+  await this.prisma.passwordResetCode.delete({ where: { userId } });
+}
+
+  async updatePassword(id: number, newPassword: string): Promise<void> {
+    await this.prisma.user.update({
+      where: { id: id },
+      data: { password: newPassword },
+    });
+  }
+
+  // Implementação do getTopProfessionals()
+  async getTopProfessionals(): Promise<User[]> {
+    return this.prisma.user.findMany({
+      where: { role: 'PROFESSIONAL' },
+      // Se rating e portfolioImages existirem no schema do Prisma, selecione:
+      // select: {
+      //   id: true,
+      //   name: true,
+      //   role: true,
+      //   rating: true,
+      //   portfolioImages: true,
+      //   // ...
+      // },
+      // or "include" if tem relação
+      take: 10,
+    });
   }
 }

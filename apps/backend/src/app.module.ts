@@ -1,37 +1,43 @@
 import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
-import { AuthModule } from './auth/auth.module';
 import { GraphQLModule } from '@nestjs/graphql';
 import { join } from 'path';
-import { UsersModule } from './users/users.module';
-import { EmailModule } from './email/email.module'; // Agora usamos o EmailModule
-import { SmsService } from './sms/sms.service';
-import { UsersService } from './users/users.service';
 import { PrismaModule } from './prisma/prisma.module';
-import './users/models/role.enum';
+import { UsersModule } from './users/users.module';
+import { AuthModule } from './auth/auth.module';
+import { EmailModule } from './email/email.module';
+import { ServicesModule } from './services/services.module';
+import { ProfessionalModule } from './professional/professional.module';
+import { AppService } from './app.service';
+import { SmsService } from './sms/sms.service';
 import { EmailService } from './email/email.service';
+import * as GraphQLUpload from 'graphql-upload/GraphQLUpload.js';
+import { PortfolioModule } from './professional/portfolio/portfolio.module';
+import { ClientModule } from './client/client.module';
 
 @Module({
   imports: [
     PrismaModule,
     UsersModule,
     AuthModule,
-    EmailModule, // Agora o EmailService é provido pelo EmailModule
+    EmailModule,
+    ServicesModule,
+    ProfessionalModule,
+    PortfolioModule,
+    ClientModule,
     ConfigModule.forRoot({
       isGlobal: true,
-      envFilePath: '.env',
+      envFilePath: process.env.NODE_ENV === 'production' ? '.env.prod' : '.env',
     }),
     GraphQLModule.forRoot<ApolloDriverConfig>({
       driver: ApolloDriver,
       autoSchemaFile: join(process.cwd(), 'src/schema.gql'),
-      context: ({ req }) => ({ req }), // Passando o request para usar nos resolvers (para JWT, etc)
+      resolvers: { Upload: GraphQLUpload },
+      context: ({ req }) => ({ req }),
     }),
   ],
-  controllers: [AppController], // AdminController removido, pois não é utilizado
-  providers: [AppService, SmsService, UsersService, EmailService],
-  exports: [UsersService],
+  controllers: [],
+  providers: [AppService, SmsService, EmailService],
 })
 export class AppModule {}

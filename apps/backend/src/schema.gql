@@ -2,23 +2,16 @@
 # THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
 # ------------------------------------------------------
 
-type LoginResponse {
-  accessToken: String!
-}
-
 type User {
   id: Int!
   email: String!
+  password: String!
   name: String!
-  phone: String
-  role: Role!
+  phoneNumber: String!
+  role: String!
   createdAt: DateTime!
-}
-
-"""User role - can be CLIENT or PROFESSIONAL"""
-enum Role {
-  CLIENT
-  PROFESSIONAL
+  rating: Float
+  portfolioImages: [String!]
 }
 
 """
@@ -26,16 +19,188 @@ A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date
 """
 scalar DateTime
 
+type Image {
+  id: Int!
+  url: String!
+  portfolioId: Int!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+}
+
+type Portfolio {
+  id: Int!
+  professionalId: Int!
+  serviceId: Int!
+  title: String!
+  description: String!
+  images: [String!]!
+  chatIds: [String!]
+  createdAt: DateTime!
+  updatedAt: DateTime!
+}
+
+type Location {
+  id: Int!
+  latitude: Float!
+  longitude: Float!
+  city: String!
+  state: String!
+  country: String!
+  professionalId: Int!
+}
+
+type Review {
+  id: Int!
+  clientId: Int!
+  professionalId: Int!
+  punctuality: Int!
+  quality: Int!
+  organization: Int!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+}
+
+type Client {
+  id: Int!
+  user: User!
+  needs: [Need]
+  budgets: [Budget]
+  createdAt: DateTime!
+  updatedAt: DateTime!
+}
+
+type Need {
+  id: Int!
+  serviceId: Int!
+  budgetId: Int
+  budgets: [Budget]
+  title: String!
+  description: String!
+  clientId: Int!
+  client: Client
+  professionalId: Int!
+  professional: Professional
+  chatId: String!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+}
+
+type UnitOfMeasurement {
+  id: Int!
+  code: String!
+  description: String!
+  budgetServices: [BudgetService!]
+}
+
+type BudgetService {
+  id: Int!
+  serviceId: Int!
+  serviceValue: Float
+  unitOfMeasurementId: Int!
+  unitOfMeasurement: UnitOfMeasurement
+  task: String!
+  quantity: Float!
+  createdAt: DateTime
+  updatedAt: DateTime
+}
+
+type Budget {
+  id: Int!
+  needId: Int!
+  client: Client
+  need: Need
+  professionalId: Int!
+  clientId: Int!
+  professional: Professional
+  amount: Float
+  description: String
+  status: String!
+  laborCost: Float
+  materialList: [String]
+  materialCost: Float
+  totalCost: Float
+  serviceDetails: String
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  budgetServices: [BudgetService!]
+}
+
+type Professional {
+  id: Int!
+  user: User!
+  profileImage: String
+  skills: [Int!]!
+  portfolios: [Portfolio!]!
+  location: Location
+  availability: String
+  reviews: [Review!]!
+  rating: Float
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  budgets: [Budget]
+  chatIds: [String!]
+}
+
+type LoginResponse {
+  accessToken: String!
+  user: User!
+}
+
+type Service {
+  id: Int!
+  name: String!
+  icon: String!
+  professionalIds: [Int!]!
+}
+
 type Query {
-  user(id: Float!): User
+  user(id: Int!): User
+  currentUser: User!
+  topProfessionals: [User!]!
+  getChatList(userId: Int!): [String!]!
+  getClientByUserId(id: Int!): String!
+  needsByChatId(chatId: String!): [Need!]!
+  getProfessionalByUserId(id: Int!): Professional
+  getSkillsByProfessionalId(id: Int!): [Int!]!
+  getPortfolios(professionalId: Int!): [Portfolio!]!
+  getRandomPortfolios: [Portfolio!]!
+  getPortfoliosByServiceAndProfessional(serviceId: Int!, professionalId: Int!): [Portfolio!]!
+  getProfileImageUrl(blobName: String!): String!
+  getPortfolioImageUrls(blobNames: [String!]!): [String!]!
+  getLocationByProfessional: Location!
+  findNearby(latitude: Float!, longitude: Float!, radius: Float!): [Location!]!
+  budgetById(id: Int!): Budget
+  budgetByNeedId(needId: Int!): Budget
+  budgetsByChatId(chatId: String!): [Budget!]!
+  budgetsByProfessional(professionalId: Int!): [Budget!]!
+  allUnits: [UnitOfMeasurement!]!
+  services: [Service!]!
 }
 
 type Mutation {
   createUser(createUserDto: CreateUserDto!): User!
-  updateUser(id: Float!, updateUserDto: UpdateUserDto!): User!
-  deleteUser(id: Float!): Boolean!
+  updateUser(id: Int!, updateUserDto: UpdateUserDto!): User!
+  deleteUser(id: Int!): Boolean!
+  updateChatList(userId: Int!, chatId: String!): Boolean!
+  createNeed(createNeedInput: CreateNeedInput!): Need!
+  createPortfolioWithImages(professionalId: Int!, input: CreatePortfolioInput!): Portfolio!
+  createPortfolio(professionalId: Int!, data: CreatePortfolioInput!): Portfolio!
+  updatePortfolio(professionalId: Int!, id: Int!, input: UpdatePortfolioInput!): Portfolio!
+  deletePortfolio(userId: Int!, id: Int!): Portfolio!
+  addLocation(input: CreateLocationInput!): Location!
+  updateLocation(input: UpdateLocationInput!): Location!
+  createBudget(input: CreateBudgetInput!): Budget!
+  updateBudget(id: Int!, input: UpdateBudgetInput!): Budget!
+  updateBudgetStatus(id: Int!, status: String!): Budget!
+  deleteBudget(id: Int!): Budget!
   login(loginUserDto: LoginUserDto!): LoginResponse!
-  register(registerUserDto: RegisterUserDto!): LoginResponse!
+  register(registerUserDto: RegisterUserDto!): User!
+  requestPasswordReset(email: String!, role: String!): Boolean!
+  validateResetCode(email: String!, role: String!, code: String!): Boolean!
+  resetPassword(email: String!, role: String!, newPassword: String!): Boolean!
+  createService(name: String!, icon: String!): Service!
+  updateService(id: Int!, name: String, icon: String): Service!
+  deleteService(id: Int!): Boolean!
 }
 
 input CreateUserDto {
@@ -52,9 +217,74 @@ input UpdateUserDto {
   phoneNumber: String
 }
 
+input CreateNeedInput {
+  title: String!
+  description: String!
+  clientId: Int!
+  professionalId: Int!
+  chatId: String!
+  serviceId: Int!
+}
+
+input CreatePortfolioInput {
+  title: String!
+  description: String!
+  images: [Upload!]!
+  serviceId: Int!
+}
+
+"""The `Upload` scalar type represents a file upload."""
+scalar Upload
+
+input UpdatePortfolioInput {
+  title: String
+  description: String
+  images: [Upload!]
+  serviceId: Int
+}
+
+input CreateLocationInput {
+  latitude: Float!
+  longitude: Float!
+  city: String!
+  state: String!
+  country: String!
+}
+
+input UpdateLocationInput {
+  latitude: Float
+  longitude: Float
+  city: String
+  state: String
+  country: String
+}
+
+input CreateBudgetInput {
+  needId: Int!
+  clientId: Int!
+  professionalId: Int!
+  description: String!
+  laborCost: Float!
+  budgetServices: [CreateBudgetServiceInput!]!
+}
+
+input CreateBudgetServiceInput {
+  unitOfMeasurementId: Int!
+  task: String!
+  serviceValue: Float!
+  quantity: Float!
+}
+
+input UpdateBudgetInput {
+  description: String!
+  totalCost: Float!
+  budgetServices: [CreateBudgetServiceInput!]!
+}
+
 input LoginUserDto {
   email: String!
   password: String!
+  role: String!
 }
 
 input RegisterUserDto {

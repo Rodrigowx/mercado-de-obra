@@ -1,5 +1,4 @@
 import { ObjectType, Field, Int } from '@nestjs/graphql';
-import { Role } from '@prisma/client'; // Importe o enum gerado pelo Prisma
 
 @ObjectType()
 export class User {
@@ -10,15 +9,23 @@ export class User {
   email: string;
 
   @Field()
+  password: string;
+
+  @Field()
   name: string;
 
-  @Field({ nullable: true })
-  phone?: string;
+  @Field()
+  phoneNumber: string; 
 
-  // Defina o campo 'role' como o tipo registrado 'Role'
-  @Field(() => Role)
-  role: Role;
+  @Field()
+  role: string;
 
   @Field()
   createdAt: Date;
+
+  @Field({ nullable: true })
+  rating?: number;
+
+  @Field(() => [String], { nullable: true })
+  portfolioImages?: string[];
 }

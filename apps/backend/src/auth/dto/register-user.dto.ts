@@ -15,8 +15,7 @@ export class RegisterUserDto {
   @Matches(
     /^((?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[\/\*\-\+\.\)\(\&\%\$\#\@\!]).{6,32})$/,
     {
-      message:
-        'A senha deve ter pelo menos 8 caracteres, com pelo menos uma letra maiúscula, uma minúscula, um número e um símbolo.',
+      message: 'A senha deve ter pelo menos 8 caracteres, incluindo letras maiúsculas, minúsculas, números e símbolos.',
     },
   )
   password: string;

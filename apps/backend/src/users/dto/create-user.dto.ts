@@ -23,8 +23,8 @@ export class CreateUserDto {
 
   @Field()
   @IsNotEmpty({ message: 'Número de telefone é obrigatório' })
-  @Matches(/^\+?[0-9\s\-().]{8,15}$/, {
-    message: 'Número de telefone com formato inválido',
+  @Matches(/^\+55\d{10,11}$/, {
+    message: 'Número de telefone inválido. Exemplo: +5511998765432',
   })
   phoneNumber: string;
 

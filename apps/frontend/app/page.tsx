@@ -1,101 +1,108 @@
-import Image from "next/image";
+"use client";
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import React, { useEffect, useContext } from "react";
+import { useQuery } from "@apollo/client";
+import { GET_RANDOM_PORTFOLIOS, GET_TOP_SERVICES } from "./graphql/queries";
+import Hero from "./components/Hero";
+import PortfolioCard from "./components/PortfolioCard";
+import SkeletonLoader from "./components/SkeletonLoader";
+import { AuthContext } from "./components/AuthContext";
 
-export default function Home() {
+export default function Page() {
+  const { user, isAuthenticated } = useContext(AuthContext);
+
+  const loggedIn = isAuthenticated;
+  const role = user?.role;
+
+  const {
+    data: portfoliosData,
+    loading: loadingPort,
+    error: errorPort,
+  } = useQuery(GET_RANDOM_PORTFOLIOS, {
+    skip: !loggedIn || role !== "CLIENT",
+  });
+
+  const { data: servicesData, loading: loadingServ } = useQuery(
+    GET_TOP_SERVICES,
+    {
+      skip: !loggedIn || role !== "CLIENT",
+    }
+  );
+
   return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="https://nextjs.org/icons/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              app/page.tsx
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
+    <div className="flex flex-col justify-center items-center ">
+    
+      {!loggedIn && (
+        <section className="container mx-auto">
+          <h2 className="text-2xl font-bold text-gray-800 dark:text-tertiary">
+            Serviços em Destaque
+          </h2>
+          <div className="mt-2 grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-10">
+            {loadingServ || !servicesData?.length ? (
+              <SkeletonLoader className="w-[19rem] h-[18rem]" count={15} />
+            ) : (
+              servicesData.topServices.map((service: any) => (
+                <PortfolioCard
+                  key={service.id}
+                  name={service.name}
+                  description="Descrição do serviço"
+                  profileLink={`/service/${service.id}`}
+                  images={service.images}
+                  rating={service.rating}
+                />
+              ))
+            )}
+          </div>
+        </section>
+      )}
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="https://nextjs.org/icons/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
-        </div>
-      </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+      {loggedIn && role === "CLIENT" && (
+        <section className="flex flex-col justify-center">
+          <h2 className="text-2xl font-bold text-gray-800 dark:text-tertiary">
+            Serviços em Destaque
+          </h2>
+          <div className="mt-3 grid grid-cols-6 gap-8">
+            {loadingPort || !portfoliosData?.getRandomPortfolios?.length ? (
+              <SkeletonLoader className="w-[19rem] h-[18rem]" count={15} />
+            ) : (
+              portfoliosData?.getRandomPortfolios.map((portfolio: any) => (
+                <PortfolioCard
+                  key={portfolio.id}
+                  name={portfolio.title}
+                  description={portfolio.description}
+                  profileLink={`/dashboard/profile/${portfolio.professionalId}`}
+                  images={portfolio.images || []}
+                  rating={user?.rating || 0}
+                />
+              ))
+            )}
+          </div>
+        </section>
+      )}
+
+      {loggedIn && role === "PROFESSIONAL" && (
+        <section className="container mx-auto ">
+          <h2 className="text-2xl pl-10 font-bold text-gray-800 dark:text-tertiary">
+            Seus Projetos Recentes
+          </h2>
+          <div className="mt-2 grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-10">
+            {loadingPort || !portfoliosData?.length ? (
+              <SkeletonLoader className="w-[19rem] h-[18rem]" count={15} />
+            ) : (
+              portfoliosData?.map((professional: any) => (
+                <PortfolioCard
+                  key={professional.id}
+                  name={professional.name}
+                  description="Descrição do serviço"
+                  profileLink={`/profile/${professional.id}`}
+                  images={professional.portfolioImages}
+                  rating={professional.rating}
+                />
+              ))
+            )}
+          </div>
+        </section>
+      )}
     </div>
   );
 }
