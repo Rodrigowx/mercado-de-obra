@@ -3,7 +3,7 @@ name: Deploy Frontend na Vercel
 on:
   push:
     branches:
-      - main  # Altere se necessário
+      - master  # Altere se necessário
 
 jobs:
   deploy:
