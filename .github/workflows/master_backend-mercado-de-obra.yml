@@ -12,6 +12,15 @@ jobs:
     permissions:
       contents: read
 
+    # 1. Definimos as variáveis de ambiente do BACKEND aqui (elas estarão disponíveis em todos os steps)
+    env:
+      DATABASE_URL: ${{ secrets.DATABASE_URL }} # Postgres
+      FRONTEND_URL: ${{ secrets.FRONTEND_URL }} # Se o backend precisa
+      AZURE_COMMUNICATION_EMAIL_CONNECTION_STRING: ${{ secrets.AZURE_COMMUNICATION_EMAIL_CONNECTION_STRING }}
+      AZURE_COMMUNICATION_EMAIL_SENDER: ${{ secrets.AZURE_COMMUNICATION_EMAIL_SENDER }}
+      NODE_ENV: production
+      PORT: 5000
+
     steps:
       - name: Checkout do código
         uses: actions/checkout@v4
@@ -26,6 +35,7 @@ jobs:
           cd apps/backend
           npm install
 
+      # 2. Rodar Prisma (para Postgres)
       - name: Gerar Prisma Client e Aplicar Migrations
         run: |
           cd apps/backend
@@ -53,7 +63,8 @@ jobs:
     needs: build
     environment:
       name: "Production"
-      url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
+      # Se quiser usar steps.deploy-to-webapp.outputs.webapp-url, tudo bem,
+      # mas não é estritamente necessário.
     permissions:
       id-token: write
       contents: read
@@ -67,6 +78,7 @@ jobs:
       - name: Login no Azure
         uses: azure/login@v2
         with:
+          # Ajuste conforme seus secrets para o BACKEND
           client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_EB4C6A6F4C874354A616BCCF2233959C }}
           tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_8A795A19DD504934A4471104571ECB30 }}
           subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_6292D88CCC9B4AB29FAC3884FEA94B3B }}
