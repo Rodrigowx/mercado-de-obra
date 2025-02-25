@@ -27,5 +27,16 @@
     },
     "types": ["fs-capacitor", "node"]
   },
-  "exclude": ["node_modules", "dist", "src/upload"]
+  "exclude": ["node_modules", "dist", "src/upload"],
+  "include": [
+    "middleware.ts",
+    "src/**/*",
+    "app/**/*",
+    "@types/**/*",
+    "server/**/*",
+    "**/*.ts",
+    "**/*.tsx",
+    "src",
+    "**/*.js"
+  ]
 }
