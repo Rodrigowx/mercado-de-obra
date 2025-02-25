@@ -12,7 +12,7 @@ jobs:
     permissions:
       contents: read
     env:
-      DATABASE_URL: ${{ secrets.DATABASE_URL }} # Postgres connection string
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
       FRONTEND_URL: ${{ secrets.FRONTEND_URL }}
       PORT: 8080
 
@@ -25,16 +25,14 @@ jobs:
         with:
           node-version: "22.x"
 
-      # Instala TODAS as dependências (inclusive devDependencies),
-      # pois precisamos do Nest CLI e tipos:
       - name: Instalar dependências
         run: |
           cd apps/backend
           npm install --include=dev
-         
+
       - name: Instalar NestJS CLI
         run: npm install -g @nestjs/cli
-      # Executa Prisma migrations e seeds
+
       - name: Executar migrations e seeds
         run: |
           export DATABASE_URL=${{ secrets.DATABASE_URL }}
@@ -44,13 +42,11 @@ jobs:
           npx prisma migrate deploy
           npm run prisma:seed
 
-      # Faz build do Nest
       - name: Gerar build
         run: |
           cd apps/backend
           npx nest build
 
-      # Compacta somente dist/, package.json, package-lock.json e pasta prisma (se precisar no runtime)
       - name: Empacotar artefato
         run: |
           cd apps/backend
@@ -87,6 +83,10 @@ jobs:
           tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_8A795A19DD504934A4471104571ECB30 }}
           subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_6292D88CCC9B4AB29FAC3884FEA94B3B }}
 
+      - name: Stop Azure App Service before deployment
+        run: az webapp stop --name backend-mercado-de-obra --resource-group mercado-de-obra
+
+
       - name: Deploy no Azure App Service
         id: deploy-to-webapp
         uses: azure/webapps-deploy@v3
@@ -94,3 +94,6 @@ jobs:
           app-name: "backend-mercado-de-obra"
           slot-name: "Production"
           package: .
+
+      - name: Start Azure App Service
+        run: az webapp start --name backend-mercado-de-obra --resource-group mercado-de-obra
