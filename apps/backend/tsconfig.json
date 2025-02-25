@@ -8,7 +8,6 @@
     "allowSyntheticDefaultImports": true,
     "target": "ES2021",
     "sourceMap": true,
-    "outDir": "./dist",
     "incremental": true,
     "skipLibCheck": true,
     "strictNullChecks": false,
@@ -19,7 +18,7 @@
     "moduleResolution": "node",
     "baseUrl": "./src",
     "paths": {
-      "@professional/*": ["professional/*"],
+      "@professional/*": ["./professional/*"],
       "@client/*": ["client/*"],
       "@budget/*": ["professional/budget/*"],
       "@users/*": ["users/*"],
