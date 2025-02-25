@@ -1,6 +1,7 @@
 import { ObjectType, Field, Int } from '@nestjs/graphql';
 import { Client } from '../../model/client.model';
 import { Budget } from '@budget/model/budget.model';
+import { Professional } from '@professional/models/professional.model';
 
 @ObjectType()
 export class Need {
@@ -11,10 +12,11 @@ export class Need {
   @Field(() => Int, { nullable: true })
   budgetId?: number;
   @Field(() => [Budget], { nullable: 'itemsAndList' })
-  budgets?: Budget[]; 
+  budgets?: Budget[];
   @Field()
   title: string;
- 
+  @Field(() => Professional, { nullable: true })
+  Professional?: Professional;
   @Field()
   description: string;
 
