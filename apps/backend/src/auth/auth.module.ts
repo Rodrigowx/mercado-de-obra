@@ -5,8 +5,8 @@ import { AuthService } from './auth.service';
 import { AuthResolver } from './auth.resolver';
 import { UsersModule } from '../users/users.module';
 import { JwtStrategy } from './dto/strategies/jwt.strategy';
-import { PrismaModule } from 'src/prisma/prisma.module';
-import { EmailModule } from 'src/email/email.module';
+import { PrismaModule } from '@prisma/prisma.module';
+import { EmailModule } from '@/email/email.module';
 
 @Module({
   imports: [

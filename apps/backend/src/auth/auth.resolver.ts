@@ -3,7 +3,7 @@ import { AuthService } from './auth.service';
 import { LoginUserDto } from './dto/login-user.dto';
 import { RegisterUserDto } from './dto/register-user.dto';
 import { LoginResponse } from './dto/login-response.model';
-import { User } from 'src/users/models/user.model';
+import { User } from '@users/models/user.model';
 
 @Resolver()
 export class AuthResolver {

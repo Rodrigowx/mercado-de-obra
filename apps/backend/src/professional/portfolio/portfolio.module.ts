@@ -3,7 +3,7 @@ import { PortfolioResolver } from './portfolio.resolver';
 import { PortfolioService } from './portfolio.service';
 import { PrismaService } from '../../prisma/prisma.service';
 import { ServicesService } from '../../services/services.service'; 
-import { UploaderImagesModule } from 'src/common/uploader/uploader-images.module';
+import { UploaderImagesModule } from '@/common/uploader/uploader-images.module';
 import { ProfessionalModule } from '../professional.module';
 
 @Module({

@@ -6,7 +6,7 @@ import { PortfolioService } from './portfolio/portfolio.service';
 import { PrismaModule } from '../prisma/prisma.module';
 import { LocationResolver } from './location/location.resolver';
 import { LocationService } from './location/location.service';
-import { ServicesService } from 'src/services/services.service';
+import { ServicesService } from '@/services/services.service';
 import { UploaderImagesModule } from '../common/uploader/uploader-images.module';
 import { BudgetModule } from './budget/budget.module';
 import { UnitModule } from './budget/unit/unit.module';

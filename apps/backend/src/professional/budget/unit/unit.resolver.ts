@@ -1,6 +1,6 @@
 import { Resolver, Query } from '@nestjs/graphql';
 import { UnitOfMeasurement } from './model/unit.model';
-import { PrismaService } from 'src/prisma/prisma.service';
+import { PrismaService } from '@/prisma/prisma.service';
 
 @Resolver(() => UnitOfMeasurement)
 export class UnitResolver {

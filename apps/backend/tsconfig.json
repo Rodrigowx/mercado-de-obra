@@ -21,8 +21,13 @@
       "@professional/*": ["professional/*"],
       "@client/*": ["client/*"],
       "@budget/*": ["professional/budget/*"],
-      "@user/*": ["user/*"],
-    }
+      "@users/*": ["users/*"],
+      "@/*": ["./*"],
+      "@prisma/*": ["prisma/*"],
+    },
+    "types": [
+      "fs-capacitor"
+    ]
   },
   "exclude": ["node_modules", "dist", "src/upload"]
 }

@@ -5,12 +5,9 @@ import { CreatePortfolioInput } from './dto/create-portfolio.input';
 import { UpdatePortfolioInput } from './dto/update-portfolio.input';
 import { UseGuards } from '@nestjs/common';
 import { GqlAuthGuard } from '../../auth/guards/gql-auth/gql-auth.guard';
-import { UploaderImagesService } from 'src/common/uploader/uploader-images.service';
-import { CreateImageInput } from 'src/common/uploader/dto/create-image.input';
+import { UploaderImagesService } from '@/common/uploader/uploader-images.service';
 import { ProfessionalService } from '../professional.service';
-import { FileUpload } from '../../common/uploader/model/file-upload.model';
-import * as GraphQLUpload from 'graphql-upload/GraphQLUpload.js';
-import { BadRequestException, NotFoundException } from '@nestjs/common';
+import { BadRequestException, } from '@nestjs/common';
 
 @Resolver(() => Portfolio)
 export class PortfolioResolver {

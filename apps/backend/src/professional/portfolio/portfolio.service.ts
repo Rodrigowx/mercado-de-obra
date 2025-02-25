@@ -3,7 +3,7 @@ import { PrismaService } from '../../prisma/prisma.service';
 import { CreatePortfolioInput } from './dto/create-portfolio.input';
 import { UpdatePortfolioInput } from './dto/update-portfolio.input';
 import { Portfolio } from './models/portfolio.model';
-import { UploaderImagesService } from 'src/common/uploader/uploader-images.service';
+import { UploaderImagesService } from '@/common/uploader/uploader-images.service';
 
 @Injectable()
 export class PortfolioService {

@@ -1,6 +1,6 @@
 import { Resolver, Query, Args, Int, Mutation } from '@nestjs/graphql';
 import { ProfessionalService } from './professional.service';
-import { Professional } from './models/professional.model';
+import { Professional } from '@professional/models/professional.model';
 
 import { Portfolio } from './portfolio/models/portfolio.model';
 
