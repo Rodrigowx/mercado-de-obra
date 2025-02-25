@@ -6,8 +6,8 @@ import {jwtDecode} from "jwt-decode";
 import { createUploadLink } from "apollo-upload-client";
 
 const httpUploadLink = createUploadLink({
-  uri: process.env.NEXT_PUBLIC_GRAPHQL_URI || "http://localhost:5000/graphql",
-  credentials: "same-origin",
+  uri: "https://backend-mercado-de-obra-beded3gsgrcedghq.brazilsouth-01.azurewebsites.net/graphqll",
+  credentials: "include",
   headers: {
     "apollo-require-preflight": "true",
   },
