@@ -16,7 +16,7 @@ jobs:
       contents: read #This is required for actions/checkout
 
     env:
-      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      DATABASE_URL_MONGO: ${{ secrets.DATABASE_URL_MONGO }}
       FRONTEND_URL: ${{ secrets.FRONTEND_URL }}
 
     steps:
@@ -26,11 +26,6 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: "22.x"
-
-      - name: Export env variables for local seed
-        run: |
-          echo "DATABASE_URL_MONGO=${{ secrets.DATABASE_URL }}" >> .env
-          echo "FRONTEND_URL=${{ secrets.FRONTEND_URL }}" >> .env
 
       - name: npm install, build
         run: |
