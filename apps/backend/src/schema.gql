@@ -49,17 +49,6 @@ type Location {
   professionalId: Int!
 }
 
-type Review {
-  id: Int!
-  clientId: Int!
-  professionalId: Int!
-  punctuality: Int!
-  quality: Int!
-  organization: Int!
-  createdAt: DateTime!
-  updatedAt: DateTime!
-}
-
 type Client {
   id: Int!
   user: User!
@@ -79,7 +68,6 @@ type Need {
   clientId: Int!
   client: Client
   professionalId: Int!
-  professional: Professional
   chatId: String!
   createdAt: DateTime!
   updatedAt: DateTime!
@@ -111,7 +99,6 @@ type Budget {
   need: Need
   professionalId: Int!
   clientId: Int!
-  professional: Professional
   amount: Float
   description: String
   status: String!
@@ -123,22 +110,6 @@ type Budget {
   createdAt: DateTime!
   updatedAt: DateTime!
   budgetServices: [BudgetService!]
-}
-
-type Professional {
-  id: Int!
-  user: User!
-  profileImage: String
-  skills: [Int!]!
-  portfolios: [Portfolio!]!
-  location: Location
-  availability: String
-  reviews: [Review!]!
-  rating: Float
-  createdAt: DateTime!
-  updatedAt: DateTime!
-  budgets: [Budget]
-  chatIds: [String!]
 }
 
 type LoginResponse {
@@ -160,7 +131,6 @@ type Query {
   getChatList(userId: Int!): [String!]!
   getClientByUserId(id: Int!): String!
   needsByChatId(chatId: String!): [Need!]!
-  getProfessionalByUserId(id: Int!): Professional
   getSkillsByProfessionalId(id: Int!): [Int!]!
   getPortfolios(professionalId: Int!): [Portfolio!]!
   getRandomPortfolios: [Portfolio!]!
