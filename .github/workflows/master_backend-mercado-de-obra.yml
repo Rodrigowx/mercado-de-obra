@@ -54,7 +54,7 @@ jobs:
       - name: Empacotar artefato
         run: |
           cd apps/backend
-          zip -r ../../backend.zip dist package.json package-lock.json node_modules prisma
+          zip -r ../../backend.zip dist package.json package-lock.json prisma
 
       - name: Upload artifact para deployment
         uses: actions/upload-artifact@v4
