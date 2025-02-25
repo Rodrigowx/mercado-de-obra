@@ -45,7 +45,7 @@ jobs:
       - name: Gerar build
         run: |
           cd apps/backend
-          npm run build
+          npx nest build
 
       - name: Upload artifact para deployment
         uses: actions/upload-artifact@v4

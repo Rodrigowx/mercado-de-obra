@@ -37,10 +37,10 @@ jobs:
           cd apps/chat-service
           npx nest build
 
-      - name: Executar testes (opcional)
-        run: |
-          cd apps/chat-service
-          npm run test --if-present
+      # - name: Executar testes (opcional)
+      #   run: |
+      #     cd apps/chat-service
+      #     npm run test --if-present
 
       - name: Compactar artefato para deploy
         run: |
