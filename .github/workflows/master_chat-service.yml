@@ -13,8 +13,8 @@ jobs:
       contents: read
 
     env:
-      DATABASE_URL_MONGO: ${{ secrets.DATABASE_URL_MONGO }} # URL do Mongo
-      FRONTEND_URL: ${{ secrets.FRONTEND_URL }} # Se o chat-service precisa para CORS
+      DATABASE_URL_MONGO: ${{ secrets.DATABASE_URL_MONGO }} # URL do MongoDB para chat-service
+      FRONTEND_URL: ${{ secrets.FRONTEND_URL }} # URL do Frontend (para CORS, etc.)
       NODE_ENV: production
       PORT: 3001
 
@@ -32,34 +32,26 @@ jobs:
           cd apps/chat-service
           npm install
 
-      # Se você estiver usando Prisma com Mongo no chat-service e quiser rodar "db push"
-      # para sincronizar, faça algo assim:
-      # - name: Prisma db push (Mongo)
-      #   run: |
-      #     cd apps/chat-service
-      #     npx prisma generate
-      #     npx prisma db push
-
       - name: Gerar build do NestJS
         run: |
           cd apps/chat-service
-          npm run build
+          npx nest build
 
-      # - name: Executar testes (opcional)
-      #   run: |
-      #     cd apps/chat-service
-      #     npm run test --if-present
+      - name: Executar testes (opcional)
+        run: |
+          cd apps/chat-service
+          npm run test --if-present
 
       - name: Compactar artefato para deploy
         run: |
           cd apps/chat-service
-          zip -r ../../release.zip .
+          zip -r ../../chat-service.zip .
 
       - name: Upload artifact para deploy
         uses: actions/upload-artifact@v4
         with:
           name: chat-service-app
-          path: release.zip
+          path: chat-service.zip
 
   deploy:
     runs-on: ubuntu-latest
@@ -76,13 +68,12 @@ jobs:
         with:
           name: chat-service-app
 
-      - name: Descompactar artefato
-        run: unzip release.zip
+      - name: Descompactar artifact
+        run: unzip chat-service.zip
 
       - name: Login no Azure
         uses: azure/login@v2
         with:
-          # Ajuste conforme seus secrets para o CHAT-SERVICE
           client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_BF8EBD6AB9BA4F5091FFDA73D5E7AE65 }}
           tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_D42E45FD39434833980641E304937979 }}
           subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_F16FBAB6BA214F73B2AD071B4B47D89B }}
