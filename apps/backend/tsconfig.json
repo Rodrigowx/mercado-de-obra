@@ -18,7 +18,7 @@
     "moduleResolution": "node",
     "baseUrl": "./src",
     "paths": {
-      "@professional/*": ["./professional/*"],
+      "@professionall/*": ["professional/*"],
       "@client/*": ["client/*"],
       "@budget/*": ["professional/budget/*"],
       "@users/*": ["users/*"],

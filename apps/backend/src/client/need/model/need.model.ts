@@ -1,7 +1,7 @@
 import { ObjectType, Field, Int } from '@nestjs/graphql';
 import { Client } from '../../model/client.model';
 import { Budget } from '@budget/model/budget.model';
-import { Professional } from '@professional/models/professional.model';
+import { Professional } from '@professionall/models/professional.model';
 
 @ObjectType()
 export class Need {

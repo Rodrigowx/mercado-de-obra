@@ -2,7 +2,7 @@ import { Module } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { UsersResolver } from './users.resolver';
 import { PrismaModule } from '../prisma/prisma.module';
-import { ProfessionalModule } from '@professional/professional.module';
+import { ProfessionalModule } from '@professionall/professional.module';
 import { ClientModule } from '@client/client.module';
 
 @Module({

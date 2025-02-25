@@ -1,6 +1,6 @@
 import { ObjectType, Field, Int } from '@nestjs/graphql';
 import { Image } from './image.model';
-import { Professional } from '@professional/models/professional.model';
+import { Professional } from '@professionall/models/professional.model';
 
 @ObjectType()
 export class Portfolio {

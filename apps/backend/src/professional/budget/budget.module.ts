@@ -6,7 +6,7 @@ import { UnitModule } from './unit/unit.module';
 
 @Module({
   providers: [BudgetResolver, BudgetService, PrismaService],
-  exports: [BudgetService],
   imports: [UnitModule],
+  exports: [BudgetService],
 })
 export class BudgetModule {}

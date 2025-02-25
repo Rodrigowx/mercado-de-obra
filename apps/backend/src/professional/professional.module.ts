@@ -1,27 +1,19 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { ProfessionalService } from './professional.service';
 import { ProfessionalResolver } from './professional.resolver';
-import { PortfolioResolver } from './portfolio/portfolio.resolver';
-import { PortfolioService } from './portfolio/portfolio.service';
-import { PrismaModule } from '../prisma/prisma.module';
-import { LocationResolver } from './location/location.resolver';
-import { LocationService } from './location/location.service';
-import { ServicesService } from '@/services/services.service';
-import { UploaderImagesModule } from '../common/uploader/uploader-images.module';
+import { PortfolioModule } from './portfolio/portfolio.module';
 import { BudgetModule } from './budget/budget.module';
-import { UnitModule } from './budget/unit/unit.module';
+import { PrismaModule } from '../prisma/prisma.module';
+import { UploaderImagesModule } from '../common/uploader/uploader-images.module';
 
 @Module({
-  providers: [
-    ProfessionalService,
-    ProfessionalResolver,
-    PortfolioResolver,
-    PortfolioService,
-    LocationResolver,
-    LocationService,
-    ServicesService,
+  providers: [ProfessionalService, ProfessionalResolver],
+  imports: [
+    PrismaModule,
+    UploaderImagesModule,
+    forwardRef(() => PortfolioModule), // Usando forwardRef()
+    BudgetModule,
   ],
-  imports: [PrismaModule, UploaderImagesModule, BudgetModule, UnitModule],
   exports: [ProfessionalService],
 })
 export class ProfessionalModule {}

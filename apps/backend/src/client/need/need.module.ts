@@ -2,7 +2,7 @@ import { Module } from '@nestjs/common';
 import { NeedService } from './need.service';
 import { NeedResolver } from './need.resolver';
 import { PrismaService } from '../../prisma/prisma.service';
-import { ProfessionalModule } from '@professional/professional.module';
+import { ProfessionalModule } from '@professionall/professional.module';
 
 @Module({
   imports: [ProfessionalModule],

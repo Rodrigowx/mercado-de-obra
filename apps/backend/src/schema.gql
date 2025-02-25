@@ -27,18 +27,6 @@ type Image {
   updatedAt: DateTime!
 }
 
-type Portfolio {
-  id: Int!
-  professionalId: Int!
-  serviceId: Int!
-  title: String!
-  description: String!
-  images: [String!]!
-  chatIds: [String!]
-  createdAt: DateTime!
-  updatedAt: DateTime!
-}
-
 type Location {
   id: Int!
   latitude: Float!
@@ -47,6 +35,17 @@ type Location {
   state: String!
   country: String!
   professionalId: Int!
+}
+
+type Review {
+  id: Int!
+  clientId: Int!
+  professionalId: Int!
+  punctuality: Int!
+  quality: Int!
+  organization: Int!
+  createdAt: DateTime!
+  updatedAt: DateTime!
 }
 
 type Client {
@@ -64,6 +63,7 @@ type Need {
   budgetId: Int
   budgets: [Budget]
   title: String!
+  Professional: Professional
   description: String!
   clientId: Int!
   client: Client
@@ -96,6 +96,7 @@ type Budget {
   id: Int!
   needId: Int!
   client: Client
+  Professional: Professional
   need: Need
   professionalId: Int!
   clientId: Int!
@@ -110,6 +111,35 @@ type Budget {
   createdAt: DateTime!
   updatedAt: DateTime!
   budgetServices: [BudgetService!]
+}
+
+type Professional {
+  id: Int!
+  user: User!
+  profileImage: String
+  skills: [Int!]!
+  portfolios: [Portfolio!]!
+  location: Location
+  availability: String
+  reviews: [Review!]!
+  rating: Float
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  budgets: [Budget]
+  chatIds: [String!]
+}
+
+type Portfolio {
+  id: Int!
+  professionalId: Int!
+  Professional: Professional
+  serviceId: Int!
+  title: String!
+  description: String!
+  images: [String!]!
+  chatIds: [String!]
+  createdAt: DateTime!
+  updatedAt: DateTime!
 }
 
 type LoginResponse {
@@ -137,8 +167,6 @@ type Query {
   getPortfoliosByServiceAndProfessional(serviceId: Int!, professionalId: Int!): [Portfolio!]!
   getProfileImageUrl(blobName: String!): String!
   getPortfolioImageUrls(blobNames: [String!]!): [String!]!
-  getLocationByProfessional: Location!
-  findNearby(latitude: Float!, longitude: Float!, radius: Float!): [Location!]!
   budgetById(id: Int!): Budget
   budgetByNeedId(needId: Int!): Budget
   budgetsByChatId(chatId: String!): [Budget!]!
@@ -157,8 +185,6 @@ type Mutation {
   createPortfolio(professionalId: Int!, data: CreatePortfolioInput!): Portfolio!
   updatePortfolio(professionalId: Int!, id: Int!, input: UpdatePortfolioInput!): Portfolio!
   deletePortfolio(userId: Int!, id: Int!): Portfolio!
-  addLocation(input: CreateLocationInput!): Location!
-  updateLocation(input: UpdateLocationInput!): Location!
   createBudget(input: CreateBudgetInput!): Budget!
   updateBudget(id: Int!, input: UpdateBudgetInput!): Budget!
   updateBudgetStatus(id: Int!, status: String!): Budget!
@@ -211,22 +237,6 @@ input UpdatePortfolioInput {
   description: String
   images: [Upload!]
   serviceId: Int
-}
-
-input CreateLocationInput {
-  latitude: Float!
-  longitude: Float!
-  city: String!
-  state: String!
-  country: String!
-}
-
-input UpdateLocationInput {
-  latitude: Float
-  longitude: Float
-  city: String
-  state: String
-  country: String
 }
 
 input CreateBudgetInput {
