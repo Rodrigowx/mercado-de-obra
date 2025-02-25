@@ -11,10 +11,11 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
-    
+
     env:
       DATABASE_URL_MONGO: ${{ secrets.DATABASE_URL_MONGO }} # URL do MongoDB para chat-service
       FRONTEND_URL: ${{ secrets.FRONTEND_URL }} # URL do Frontend (para CORS, etc.)
+      PORT: 8080
 
     steps:
       - name: Checkout do código
@@ -30,6 +31,9 @@ jobs:
           cd apps/chat-service
           npm install --include=dev
           # OU: npm ci --include=dev
+
+      - name: Instalar NestJS CLI
+        run: npm install -g @nestjs/cli
 
       - name: Gerar build do NestJS
         run: |
