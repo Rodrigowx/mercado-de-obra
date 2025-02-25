@@ -11,6 +11,10 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
+    
+    env:
+      DATABASE_URL_MONGO: ${{ secrets.DATABASE_URL_MONGO }} # URL do MongoDB para chat-service
+      FRONTEND_URL: ${{ secrets.FRONTEND_URL }} # URL do Frontend (para CORS, etc.)
 
     steps:
       - name: Checkout do código

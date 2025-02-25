@@ -11,6 +11,9 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
+    env:
+      DATABASE_URL: ${{ secrets.DATABASE_URL }} # Postgres connection string
+      FRONTEND_URL: ${{ secrets.FRONTEND_URL }}
 
     steps:
       - name: Checkout do código
