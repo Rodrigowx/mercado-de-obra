@@ -1,6 +1,6 @@
 import { ObjectType, Field, Int } from '@nestjs/graphql';
 import { Client } from '../../model/client.model';
-import { Professional } from '@professional/models/professional.model';
+import { Professional } from '@/professional/models/professional.model';
 import { Budget } from '@budget/model/budget.model';
 
 @ObjectType()
