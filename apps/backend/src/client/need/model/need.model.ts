@@ -1,6 +1,5 @@
 import { ObjectType, Field, Int } from '@nestjs/graphql';
 import { Client } from '../../model/client.model';
-import { Professional } from '@/professional/models/professional.model';
 import { Budget } from '@budget/model/budget.model';
 
 @ObjectType()
@@ -27,9 +26,6 @@ export class Need {
 
   @Field(() => Int)
   professionalId: number;
-
-  @Field(() => Professional, { nullable: true })
-  professional?: Professional;
 
   @Field()
   chatId: string;

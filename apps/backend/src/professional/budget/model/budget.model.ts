@@ -1,6 +1,5 @@
 import { ObjectType, Field, Int, Float } from '@nestjs/graphql';
 import { Need } from '@client/need/model/need.model';
-import { Professional } from '@/professional/models/professional.model';
 import { Client } from '@client/model/client.model';
 import { BudgetService } from './budget-services.model';
 
@@ -23,9 +22,6 @@ export class Budget {
 
   @Field(() => Int)
   clientId: number;
-
-  @Field(() => Professional, { nullable: true })
-  professional?: Professional;
 
   @Field(() => Float, { nullable: true })
   amount?: number;

@@ -1,6 +1,5 @@
 import { Resolver, Query, Args, Int } from '@nestjs/graphql';
 import { ProfessionalService } from './professional.service';
-import { Professional } from "./models/professional.model"
 
 import { Portfolio } from './portfolio/models/portfolio.model';
 
@@ -44,10 +43,10 @@ export class ProfessionalResolver {
   /**
    * Busca um Professional pelo ID
    */
-  @Query(() => Professional, { nullable: true })
-  async getProfessionalByUserId(@Args('id', { type: () => Int }) id: number) {
-    return this.professionalService.findById(id);
-  }
+  // @Query(() =>)
+  // async getProfessionalByUserId(@Args('id', { type: () => Int }) id: number) {
+  //   return this.professionalService.findById(id);
+  // }
 
   /**
    * Busca todas as skills de um profissional
