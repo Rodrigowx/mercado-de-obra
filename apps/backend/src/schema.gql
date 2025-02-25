@@ -27,23 +27,14 @@ type Image {
   updatedAt: DateTime!
 }
 
-type Location {
+type Portfolio {
   id: Int!
-  latitude: Float!
-  longitude: Float!
-  city: String!
-  state: String!
-  country: String!
   professionalId: Int!
-}
-
-type Review {
-  id: Int!
-  clientId: Int!
-  professionalId: Int!
-  punctuality: Int!
-  quality: Int!
-  organization: Int!
+  serviceId: Int!
+  title: String!
+  description: String!
+  images: [String!]!
+  chatIds: [String!]
   createdAt: DateTime!
   updatedAt: DateTime!
 }
@@ -63,7 +54,6 @@ type Need {
   budgetId: Int
   budgets: [Budget]
   title: String!
-  Professional: Professional
   description: String!
   clientId: Int!
   client: Client
@@ -96,7 +86,6 @@ type Budget {
   id: Int!
   needId: Int!
   client: Client
-  Professional: Professional
   need: Need
   professionalId: Int!
   clientId: Int!
@@ -111,35 +100,6 @@ type Budget {
   createdAt: DateTime!
   updatedAt: DateTime!
   budgetServices: [BudgetService!]
-}
-
-type Professional {
-  id: Int!
-  user: User!
-  profileImage: String
-  skills: [Int!]!
-  portfolios: [Portfolio!]!
-  location: Location
-  availability: String
-  reviews: [Review!]!
-  rating: Float
-  createdAt: DateTime!
-  updatedAt: DateTime!
-  budgets: [Budget]
-  chatIds: [String!]
-}
-
-type Portfolio {
-  id: Int!
-  professionalId: Int!
-  Professional: Professional
-  serviceId: Int!
-  title: String!
-  description: String!
-  images: [String!]!
-  chatIds: [String!]
-  createdAt: DateTime!
-  updatedAt: DateTime!
 }
 
 type LoginResponse {
