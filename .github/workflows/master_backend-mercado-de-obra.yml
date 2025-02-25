@@ -30,7 +30,7 @@ jobs:
         run: |
           cd apps/backend
           npm install --include=dev
-          # OU: npm ci --include=dev  (se quiser usar o "ci")
+         
 
       # Executa Prisma migrations e seeds
       - name: Executar migrations e seeds
