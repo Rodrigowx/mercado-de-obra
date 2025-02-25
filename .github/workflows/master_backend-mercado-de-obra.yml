@@ -75,10 +75,6 @@ jobs:
           tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_D82A1DC52B094BF5B8B2BAF35E3D97E1 }}
           subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_B8DFDB741F1F4809ABE822BB8B45AF02 }}
 
-      - name: Set environment variables in Azure Web App
-        run: |
-          az webapp config appsettings set --name backend-mercado-de-obra --resource-group MeuResourceGroup --settings DATABASE_URL=${{ secrets.DATABASE_URL }} FRONTEND_URL=${{ secrets.FRONTEND_URL }}
-
       - name: Deploy to Azure Web App
         id: deploy-to-webapp
         uses: azure/webapps-deploy@v3
