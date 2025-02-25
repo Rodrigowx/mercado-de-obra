@@ -11,9 +11,6 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
-    env:
-      DATABASE_URL: ${{ secrets.DATABASE_URL }} # Postgres connection string
-      FRONTEND_URL: ${{ secrets.FRONTEND_URL }}
 
     steps:
       - name: Checkout do código
@@ -24,32 +21,41 @@ jobs:
         with:
           node-version: "22.x"
 
+      # Instala TODAS as dependências (inclusive devDependencies),
+      # pois precisamos do Nest CLI e tipos:
       - name: Instalar dependências
         run: |
           cd apps/backend
-          npm install
+          npm install --include=dev
+          # OU: npm ci --include=dev  (se quiser usar o "ci")
 
-      - name: Gerar Prisma Client e Aplicar Migrations
+      # Executa Prisma migrations e seeds
+      - name: Executar migrations e seeds
         run: |
+          export DATABASE_URL=${{ secrets.DATABASE_URL }}
+          export FRONTEND_URL=${{ secrets.FRONTEND_URL }}
           cd apps/backend
           npx prisma generate
           npx prisma migrate deploy
-
-      - name: Rodar Seed no Banco de Dados
-        run: |
-          cd apps/backend
           npm run prisma:seed
 
+      # Faz build do Nest
       - name: Gerar build
         run: |
           cd apps/backend
           npx nest build
 
+      # Compacta somente dist/, package.json, package-lock.json e pasta prisma (se precisar no runtime)
+      - name: Empacotar artefato
+        run: |
+          cd apps/backend
+          zip -r ../../backend.zip dist package.json package-lock.json prisma
+
       - name: Upload artifact para deployment
         uses: actions/upload-artifact@v4
         with:
           name: backend-app
-          path: apps/backend
+          path: backend.zip
 
   deploy:
     runs-on: ubuntu-latest
@@ -66,6 +72,9 @@ jobs:
         with:
           name: backend-app
 
+      - name: Descompactar artifact
+        run: unzip backend.zip
+
       - name: Login no Azure
         uses: azure/login@v2
         with:
@@ -79,4 +88,4 @@ jobs:
         with:
           app-name: "backend-mercado-de-obra"
           slot-name: "Production"
-          package: apps/backend
+          package: .

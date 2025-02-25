@@ -12,10 +12,6 @@ jobs:
     permissions:
       contents: read
 
-    env:
-      DATABASE_URL_MONGO: ${{ secrets.DATABASE_URL_MONGO }} # URL do MongoDB para chat-service
-      FRONTEND_URL: ${{ secrets.FRONTEND_URL }} # URL do Frontend (para CORS, etc.)
-
     steps:
       - name: Checkout do código
         uses: actions/checkout@v4
@@ -28,22 +24,20 @@ jobs:
       - name: Instalar dependências
         run: |
           cd apps/chat-service
-          npm install
+          npm install --include=dev
+          # OU: npm ci --include=dev
 
       - name: Gerar build do NestJS
         run: |
+          export DATABASE_URL_MONGO=${{ secrets.DATABASE_URL_MONGO }}
+          export FRONTEND_URL=${{ secrets.FRONTEND_URL }}
           cd apps/chat-service
           npx nest build
-
-      # - name: Executar testes (opcional)
-      #   run: |
-      #     cd apps/chat-service
-      #     npm run test --if-present
 
       - name: Compactar artefato para deploy
         run: |
           cd apps/chat-service
-          zip -r ../../chat-service.zip .
+          zip -r ../../chat-service.zip dist package.json package-lock.json
 
       - name: Upload artifact para deploy
         uses: actions/upload-artifact@v4
