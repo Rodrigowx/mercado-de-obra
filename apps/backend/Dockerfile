@@ -1,16 +1,16 @@
-# Usando Node.js 22 como base
+# Usa a imagem do Node.js 22
 FROM node:22
 
-# Definindo o diretório dentro do container
+# Define o diretório de trabalho dentro do container
 WORKDIR /app
 
-# Copia os arquivos do projeto para dentro do container
-COPY . .
+# Copia apenas o código do backend
+COPY apps/backend/ .  
 
 # Instala as dependências
 RUN npm install
 
-# Expõe a porta que será usada pelo backend
+# Expõe a porta usada pelo backend
 EXPOSE 3000
 
 # Comando para iniciar o backend
