@@ -47,12 +47,19 @@ jobs:
     runs-on: ubuntu-latest
     needs: build_and_push_backend
     steps:
-      - name: Restart Backend in Azure
+      - name: Login to Azure
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Deploy Backend Container to Azure
         run: |
           az webapp config container set \
             --resource-group mercado-de-obra \
             --name backend-mercado-de-obra \
-            --docker-custom-image-name ${{ secrets.DOCKERHUB_USERNAME }}/backend-app:latest
+            --container-image-name ${{ secrets.DOCKERHUB_USERNAME }}/backend-app:latest
 
   build_and_push_chat:
     runs-on: ubuntu-latest
@@ -80,9 +87,16 @@ jobs:
     runs-on: ubuntu-latest
     needs: build_and_push_chat
     steps:
-      - name: Restart Chat in Azure
+      - name: Login to Azure
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Deploy Chat Container to Azure
         run: |
           az webapp config container set \
             --resource-group mercado-de-obra \
             --name chat-mercado-de-obra \
-            --docker-custom-image-name ${{ secrets.DOCKERHUB_USERNAME }}/chat-app:latest
+            --container-image-name ${{ secrets.DOCKERHUB_USERNAME }}/chat-app:latest
