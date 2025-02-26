@@ -11,7 +11,8 @@ COPY package.json package-lock.json ./
 RUN npm install --omit=dev
 
 # Copia o backend para dentro do container
-COPY apps/backend ./apps/backend
+COPY apps/backend/package.json apps/backend/package-lock.json ./
+
 
 # Define o diretório de trabalho do backend
 WORKDIR /app/apps/backend
