@@ -2,44 +2,41 @@ FROM node:22-alpine AS builder
 
 WORKDIR /app
 
-# 1. Instalar dependências ESSENCIAIS para o Prisma
-RUN apk add --no-cache openssl libssl3 openssl-dev libc6-compat gcompat
+# 1. Instalar dependências críticas
+RUN apk add --no-cache \
+    openssl \
+    libssl3 \
+    openssl-dev \
+    libc6-compat \
+    gcompat \
+    ca-certificates
 
-# 2. Copiar configurações
+# 2. Configurar variáveis de ambiente ESSENCIAIS
+ENV LD_LIBRARY_PATH=/usr/lib
+ENV PRISMA_ENGINE_LIBRARY=/usr/lib/libssl.so.3
+ENV PRISMA_QUERY_ENGINE_LIBRARY=/usr/lib/libssl.so.3
+
+# 3. Copiar e instalar dependências
 COPY apps/backend/package.json apps/backend/package-lock.json ./
+RUN npm install -g npm@10.9.2 && npm ci
+
+# 4. Copiar configurações do projeto
 COPY apps/backend/tsconfig*.json ./
 COPY apps/backend/nest-cli.json ./
-
-# 3. Forçar versão estável do npm
-RUN npm install -g npm@10.9.2
-
-# 4. Instalar dependências
-RUN npm ci
-
-# 5. Copiar schema do Prisma
 COPY apps/backend/prisma ./prisma
 
-# 6. Configurar variáveis para o Prisma Engine
-ENV PRISMA_ENGINE_LIBRARY=/usr/lib/libssl.so.3 \
-    PRISMA_QUERY_ENGINE_LIBRARY=/usr/lib/libssl.so.3
-
-# 7. Gerar client do Prisma
+# 5. Gerar client Prisma
 RUN npx prisma generate --schema=./prisma/schema.prisma
 
-# 8. Copiar código fonte
+# 6. Copiar código e build
 COPY apps/backend/src ./src
-
-# 9. Build da aplicação
 RUN npm run build
 
 # Estágio de produção
 FROM node:22-alpine
 WORKDIR /app
-
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/prisma ./prisma
 
-ENV PORT=8080
-EXPOSE $PORT
 CMD ["node", "dist/main.js"]

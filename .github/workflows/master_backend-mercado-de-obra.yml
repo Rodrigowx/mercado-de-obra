@@ -49,10 +49,10 @@ jobs:
             -e LD_LIBRARY_PATH=/usr/lib \
             -e PRISMA_ENGINE_LIBRARY=/usr/lib/libssl.so.3 \
             -e PRISMA_QUERY_ENGINE_LIBRARY=/usr/lib/libssl.so.3 \
-            -v ${{ github.workspace }}/apps/backend/prisma:/app/prisma \
             -e DATABASE_URL="${{ secrets.DATABASE_URL }}" \
+            -v ${{ github.workspace }}/apps/backend/prisma:/app/prisma \
             ${{ secrets.DOCKERHUB_USERNAME }}/backend-app:latest \
-            npx prisma migrate deploy
+            npx prisma migrate deploy --schema=./prisma/schema.prisma
       
       - name: Deploy to Azure
         uses: azure/webapps-deploy@v3
