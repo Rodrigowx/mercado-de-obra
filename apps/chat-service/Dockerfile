@@ -1,29 +1,27 @@
 # Usando Node.js como base
-FROM node:22
+FROM node:22-alpine
 
 # Criando diretório de trabalho dentro do container
 WORKDIR /app
 
-# Copiando apenas os arquivos do Chat-Service primeiro (para otimizar cache)
-COPY apps/chat-service/package*.json ./apps/chat-service/
+# Copiando apenas os arquivos de dependências do Chat-Service primeiro (para otimizar cache)
+COPY apps/chat-service/package*.json apps/chat-service/
 
-# Instalando as dependências apenas do Chat-Service
-RUN cd apps/chat-service && npm install
-
-# Copiando todo o código do Chat-Service
-COPY apps/chat-service ./apps/chat-service
-
-# Mudando para a pasta correta
+# Instalando apenas as dependências de produção
 WORKDIR /app/apps/chat-service
+RUN npm install --only=production
 
-# Rodando build (se necessário)
+# Copiando o restante do código da aplicação
+COPY apps/chat-service/ .
+
+# Compilando a aplicação (se necessário)
 RUN npm run build --if-present
 
-# Definindo variável de ambiente para a porta
+# Definindo a variável de ambiente correta (Azure define automaticamente $PORT)
 ENV PORT=8080
 
 # Expondo a porta correta
 EXPOSE 8080
 
-# Iniciando a aplicação no diretório correto
-CMD ["sh", "-c", "npm run start:prod"]
+# Iniciando a aplicação garantindo que a variável PORT seja usada corretamente
+CMD ["npm", "run", "start:prod"]
