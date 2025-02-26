@@ -4,14 +4,15 @@ FROM node:22-alpine
 # Criando diretório de trabalho dentro do container
 WORKDIR /app
 
-# ✅ Instalando dependências essenciais para Prisma e OpenSSL
-RUN apk add --no-cache openssl1.1-compat
+# ✅ Instalando OpenSSL corretamente para Prisma
+RUN apk add --no-cache openssl
 
 # ✅ Copiando apenas os arquivos essenciais para otimizar cache
 COPY apps/backend/package.json apps/backend/package-lock.json ./
 
 # ✅ Instalando as dependências de produção
 RUN npm install
+
 # ✅ Instalando o Nest CLI globalmente (caso necessário)
 RUN npm install -g @nestjs/cli
 
