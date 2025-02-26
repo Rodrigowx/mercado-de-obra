@@ -25,13 +25,20 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_PASSWORD }}
 
-      - name: Build & Push
+      - name: Build & Push Chat
         uses: docker/build-push-action@v5
         with:
-          context: .  # ✅ Contexto na raiz do repositório
+          context: apps/chat-service
           file: apps/chat-service/Dockerfile
           push: true
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/chat-service:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Debug Chat (se necessário)
+        run: |
+          cd apps/chat-service
+          docker build -t debug-chat --no-cache .
 
       - name: Deploy to Azure
         uses: azure/webapps-deploy@v3

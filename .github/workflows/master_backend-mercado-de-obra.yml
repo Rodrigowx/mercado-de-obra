@@ -27,13 +27,25 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_PASSWORD }}
 
+      - name: Verificar arquivos
+        run: |
+          echo "Conteúdo do chat-service:"
+          ls -la apps/chat-service
+          echo "Conteúdo do prisma (se aplicável):"
+          ls -la apps/chat-service/prisma || echo "Prisma não encontrado"
+
       - name: Build & Push
         uses: docker/build-push-action@v5
         with:
-          context: .  
+          context: apps/backend
           file: apps/backend/Dockerfile
           push: true
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/backend-app:latest
+
+      - name: Debug Backend
+        run: |
+          cd apps/backend
+          docker build -t debug-backend --progress=plain --no-cache .
 
       - name: Run Migrations
         run: |
