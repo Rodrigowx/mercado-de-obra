@@ -7,14 +7,20 @@ WORKDIR /app
 # Copiando apenas os arquivos essenciais para otimizar cache
 COPY apps/backend/package.json apps/backend/package-lock.json ./
 
-# Instalando apenas as dependências de produção
+# Instalando as dependências de produção
 RUN npm install --omit=dev
+
+# Instalando o Nest CLI globalmente (se necessário)
+RUN npm install -g @nestjs/cli
 
 # Copiando todo o código do backend diretamente para a raiz `/app/`
 COPY apps/backend/ ./
 
-# Compilando a aplicação (se necessário)
-RUN npm run build --if-present
+# Mudando para a pasta correta antes de compilar
+WORKDIR /app
+
+# Compilando a aplicação (agora deve funcionar)
+RUN npx nest build
 
 # Definindo variável de ambiente para a porta correta
 ENV PORT=8080
