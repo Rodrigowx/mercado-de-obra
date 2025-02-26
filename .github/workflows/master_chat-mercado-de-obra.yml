@@ -4,8 +4,8 @@ on:
   push:
     branches: [master]
     paths:
-      - 'apps/chat-service/**'
-      - 'prisma/**'
+      - "apps/chat-service/**"
+      - "prisma/**"
   workflow_dispatch:
 
 permissions:
@@ -20,7 +20,7 @@ jobs:
   deploy-chat:
     runs-on: ubuntu-latest
     environment: production
-    
+
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
@@ -31,14 +31,22 @@ jobs:
         with:
           version: v0.14.0
           driver: docker-container
-          driver-opts: |
-            image=moby/buildkit:v0.14.0
-          buildkitd-config: |
-            [worker.oci]
-              enabled = true
-              network = "host"
+          buildkitd-config-inline: |
+            version = "0.1"
+
+            [worker]
+              oci:
+                enabled = true
+                network = "host"
+                snapshotter = "overlayfs"
+
             [registry."docker.io"]
               mirrors = ["mirror.gcr.io"]
+              http = true
+
+      - name: Verify Config
+        run: |
+          docker buildx inspect --bootstrap | grep -A 15 'BuildKit configuration:'
 
       - name: Docker Metadata
         id: meta
@@ -77,6 +85,6 @@ jobs:
       - name: Deploy to Azure
         uses: azure/webapps-deploy@v3
         with:
-          app-name: 'chat-mercado-de-obra'
-          slot-name: 'Production'
-          images: '${{ env.IMAGE_NAME }}:${{ steps.meta.outputs.version }}'
+          app-name: "chat-mercado-de-obra"
+          slot-name: "Production"
+          images: "${{ env.IMAGE_NAME }}:${{ steps.meta.outputs.version }}"
