@@ -29,8 +29,15 @@ jobs:
         uses: docker/setup-buildx-action@v3
         id: buildx
         with:
-          driver: docker
-          endpoint: default
+          driver: docker-container
+          driver-opts: |
+            image=moby/buildkit:v0.14.0
+          buildkitd-config: |
+            [worker.oci]
+              enabled = true
+              network = "host"
+            [registry."docker.io"]
+              mirrors = ["mirror.gcr.io"]
 
       - name: Docker Metadata
         id: meta
@@ -54,8 +61,9 @@ jobs:
           file: apps/backend/Dockerfile
           push: true
           tags: ${{ steps.meta.outputs.tags }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          cache-from: type=gha,scope=${{ github.workflow }}-backend
+          cache-to: type=gha,mode=max,scope=${{ github.workflow }}-backend
+          builder: ${{ steps.buildx.outputs.name }}
           provenance: false
           sbom: false
 

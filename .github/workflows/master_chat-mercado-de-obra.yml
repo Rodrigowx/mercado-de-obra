@@ -1,4 +1,4 @@
-name: Deploy chat-service
+name: Deploy Chat Service
 
 on:
   push:
@@ -17,7 +17,7 @@ env:
   IMAGE_NAME: ${{ secrets.DOCKERHUB_USERNAME }}/chat-app
 
 jobs:
-  deploy-chat-service:
+  deploy-chat:
     runs-on: ubuntu-latest
     environment: production
     
@@ -25,12 +25,20 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Set up Docker Buildx
+      - name: Configure Buildx
         uses: docker/setup-buildx-action@v3
         id: buildx
         with:
-          driver: docker
-          endpoint: default
+          version: v0.14.0
+          driver: docker-container
+          driver-opts: |
+            image=moby/buildkit:v0.14.0
+          buildkitd-config: |
+            [worker.oci]
+              enabled = true
+              network = "host"
+            [registry."docker.io"]
+              mirrors = ["mirror.gcr.io"]
 
       - name: Docker Metadata
         id: meta
@@ -47,24 +55,24 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_PASSWORD }}
 
-      - name: Build & Push chat-service Image
+      - name: Build & Push Chat Image
         uses: docker/build-push-action@v5
         with:
           context: apps/chat-service
           file: apps/chat-service/Dockerfile
           push: true
           tags: ${{ steps.meta.outputs.tags }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          cache-from: type=gha,scope=${{ github.workflow }}-chat
+          cache-to: type=gha,mode=max,scope=${{ github.workflow }}-chat
+          builder: ${{ steps.buildx.outputs.name }}
           provenance: false
           sbom: false
 
-      - name: Run DB Migrations
+      - name: Verify Build
         run: |
-          docker run --rm \
-            -e DATABASE_URL="${{ secrets.DATABASE_URL }}" \
-            ${{ env.IMAGE_NAME }}:${{ steps.meta.outputs.version }} \
-            npx prisma migrate deploy
+          docker buildx version
+          docker buildx inspect
+          docker buildx du --verbose
 
       - name: Deploy to Azure
         uses: azure/webapps-deploy@v3
