@@ -27,4 +27,4 @@ EXPOSE 8080
 ENV PORT=8080
 
 # Inicia a aplicação garantindo que a porta correta seja usada
-CMD ["sh", "-c", "PORT=$PORT npm run start:prod"]
+CMD ["npm", "run", "start:prod"]
