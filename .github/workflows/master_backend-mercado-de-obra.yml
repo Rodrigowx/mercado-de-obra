@@ -40,6 +40,13 @@ jobs:
           build-args: |
             NODE_ENV=production
 
+      - name: Run Migrations
+        run: |
+          docker run --rm \
+            -e DATABASE_URL_MONGO="${{ secrets.DATABASE_URL }}" \
+            ${{ secrets.DOCKERHUB_USERNAME }}/backend-app:latest \
+            npx prisma migrate deploy
+
       - name: Deploy to Azure
         uses: azure/webapps-deploy@v3
         with:
