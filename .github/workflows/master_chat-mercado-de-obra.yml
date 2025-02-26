@@ -29,16 +29,13 @@ jobs:
         uses: docker/setup-buildx-action@v3
         id: buildx
         with:
-          version: v0.14.0
           driver: docker-container
           buildkitd-config-inline: |
             version = "0.1"
             [worker]
               oci.enabled = true
-              oci.network = "host"
+              network = "host"
               platforms = ["linux/amd64"]
-            [registry."docker.io"]
-              mirrors = ["mirror.gcr.io"]
 
       - name: Validate BuildKit Config
         run: |
@@ -59,18 +56,17 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_PASSWORD }}
 
-      - name: Build & Push Chat Image
+      
+      - name: Build & Push
         uses: docker/build-push-action@v5
         with:
-          context: apps/chat-service
+          context: .  # ✅ Contexto na raiz
           file: apps/chat-service/Dockerfile
           push: true
-          tags: ${{ steps.meta.outputs.tags }}
-          cache-from: type=gha,scope=${{ github.workflow }}-chat
-          cache-to: type=gha,mode=max,scope=${{ github.workflow }}-chat
+          tags: user/chat-app:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
           builder: ${{ steps.buildx.outputs.name }}
-          provenance: false
-          sbom: false
 
       - name: Verify Build
         run: |

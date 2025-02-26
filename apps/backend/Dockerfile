@@ -4,24 +4,26 @@
     FROM node:22-alpine AS builder
 
     WORKDIR /app
-    
-    # 1. Copiar dependências
+
+    # Copiar package.json da raiz
     COPY package.json package-lock.json ./
+    
+    # Copiar workspace específico
     COPY apps/backend/package.json ./apps/backend/package.json
     
-    # 2. Instalar todas as dependências (incluindo dev)
+    # Instalar dependências
     RUN npm install --workspace=backend
     
-    # 3. Copiar schema do Prisma (ajuste o caminho conforme sua estrutura)
+    # Copiar schema do Prisma
     COPY prisma ./prisma
     
-    # 4. Gerar Prisma Client
+    # Gerar client
     RUN npx prisma generate
     
-    # 5. Copiar código fonte
+    # Copiar código fonte
     COPY apps/backend ./apps/backend
     
-    # 6. Build da aplicação
+    # Build
     RUN npm run build --workspace=backend
     
     # --------------------------------------------

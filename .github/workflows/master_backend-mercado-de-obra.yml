@@ -51,14 +51,12 @@ jobs:
       - name: Build & Push Backend
         uses: docker/build-push-action@v5
         with:
-          context: apps/backend
+          context: . 
           file: apps/backend/Dockerfile
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           cache-from: type=gha,scope=backend
           cache-to: type=gha,mode=max,scope=backend
-          builder: ${{ steps.buildx.outputs.name }}
-          provenance: false
 
       - name: Run DB Migrations
         run: |
