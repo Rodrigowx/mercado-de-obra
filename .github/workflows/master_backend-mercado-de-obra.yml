@@ -39,10 +39,7 @@ jobs:
           context: .
           file: apps/backend/Dockerfile
           push: true
-          tags: |
-            ${{ secrets.DOCKERHUB_USERNAME }}/backend-app:latest
-          cache-from: type=gha,scope=backend
-          cache-to: type=gha,mode=max,scope=backend
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/backend-app:latest
           build-args: |
             NODE_ENV=production
 

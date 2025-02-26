@@ -6,8 +6,10 @@ WORKDIR /app
 # 1. Instalar dependências do sistema
 RUN apk add --no-cache openssl
 
-# 2. Copiar dependências do backend
+# 2. Copiar arquivos de configuração
 COPY apps/backend/package.json apps/backend/package-lock.json ./
+COPY apps/backend/tsconfig*.json ./
+COPY apps/backend/nest-cli.json ./
 
 # 3. Instalar dependências
 RUN npm ci
