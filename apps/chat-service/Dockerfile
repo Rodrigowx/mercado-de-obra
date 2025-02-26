@@ -10,15 +10,21 @@ COPY apps/chat-service/package.json apps/chat-service/package-lock.json ./
 # Instalando apenas as dependências de produção
 RUN npm install --omit=dev
 
-# Copiando todo o código do chat diretamente para a raiz `/app/`
+# Instalando o Nest CLI globalmente (se necessário)
+RUN npm install -g @nestjs/cli
+
+# Copiando todo o código do Chat-Service diretamente para a raiz `/app/`
 COPY apps/chat-service/ ./
 
-# Compilando a aplicação (se necessário)
-RUN npm run build --if-present
+# Mudando para a pasta correta antes de compilar
+WORKDIR /app
+
+# Compilando a aplicação (agora deve funcionar)
+RUN npx nest build
 
 # Definindo variável de ambiente para a porta correta
-ENV PORT=8080
-EXPOSE 8080
+ENV PORT=8181
+EXPOSE 8181
 
 # Iniciando a aplicação garantindo que a variável PORT seja usada corretamente
 CMD ["sh", "-c", "npm run start:prod"]
