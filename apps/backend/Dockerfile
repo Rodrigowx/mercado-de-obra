@@ -3,10 +3,10 @@ FROM node:22-alpine AS builder
 
 WORKDIR /app
 
-# 1. Instalar dependências do sistema
-RUN apk add --no-cache openssl
+# 1. Instalar dependências ESSENCIAIS para o Prisma
+RUN apk add --no-cache openssl libssl3 openssl-dev
 
-# 2. Copiar arquivos de configuração
+# 2. Copiar configurações
 COPY apps/backend/package.json apps/backend/package-lock.json ./
 COPY apps/backend/tsconfig*.json ./
 COPY apps/backend/nest-cli.json ./
