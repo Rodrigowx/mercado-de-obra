@@ -11,7 +11,7 @@ COPY package*.json .
 COPY prisma ./prisma
 
 # 3. Instala dependências
-RUN npm ci --omit=dev && \
+RUN npm ci && \
     npx prisma generate
 
 # 4. Copia APENAS os arquivos do backend
