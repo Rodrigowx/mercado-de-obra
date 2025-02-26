@@ -37,10 +37,11 @@ jobs:
           push: true
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/chat-service:latest
 
-      - name: Run Database Migrations
+      # No GitHub Actions
+      - name: Run Migrations
         run: |
           docker run --rm \
-            -e DATABASE_URL="${{ secrets.DATABASE_URL_MONGO}}" \
+            -e DATABASE_URL_MONGO="${{ secrets.DATABASE_URL_MONGO }}" \ 
             ${{ secrets.DOCKERHUB_USERNAME }}/chat-service:latest \
             npx prisma migrate deploy
 

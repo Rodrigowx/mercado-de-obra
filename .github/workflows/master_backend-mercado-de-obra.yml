@@ -36,10 +36,7 @@ jobs:
           file: apps/backend/Dockerfile
           push: true
           tags: |
-            ${{ secrets.DOCKERHUB_USERNAME }}/backend-app:latest
-          build-args: |
-            NODE_ENV=production
-  
+            ${{ secrets.DOCKERHUB_USERNAME }}/backend-app:latest  
       - name: Run Migrations and Seed
         run: |
           docker run --rm \

@@ -1,24 +1,24 @@
+# apps/backend/Dockerfile
 FROM node:22-alpine
 
 WORKDIR /app
 
-# 1. Dependências do sistema
+# 1. Instala dependências do sistema
 RUN apk add --no-cache openssl libssl3 libc6-compat
 
-# 2. Copia arquivos básicos
-COPY apps/backend/package*.json .
-COPY apps/backend/prisma ./prisma
+# 2. Copia apenas o necessário para cache
+COPY package*.json .
+COPY prisma ./prisma
 
 # 3. Instala dependências
-RUN npm ci && \
+RUN npm ci --omit=dev && \
     npx prisma generate
 
-# 4. Copia todo o conteúdo
-COPY apps/backend .
+# 4. Copia APENAS os arquivos do backend
+COPY src ./src
+COPY tsconfig*.json .
 
-# 5. Build da aplicação
+# 5. Build e execução
 RUN npm run build
 
-# 6. Configuração final
-USER node
 CMD ["node", "dist/main.js"]
