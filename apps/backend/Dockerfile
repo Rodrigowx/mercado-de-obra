@@ -8,7 +8,7 @@ WORKDIR /app
 COPY apps/backend/package.json apps/backend/package-lock.json ./
 
 # Instalando as dependências de produção
-RUN npm install --omit=dev
+RUN npm install
 
 # Instalando o Nest CLI globalmente (se necessário)
 RUN npm install -g @nestjs/cli
