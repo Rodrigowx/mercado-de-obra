@@ -28,12 +28,10 @@ jobs:
       - name: Build & Push
         uses: docker/build-push-action@v5
         with:
-          context: apps/chat-service
+          context: .  # ✅ Contexto na raiz do repositório
           file: apps/chat-service/Dockerfile
           push: true
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/chat-service:latest
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
 
       - name: Deploy to Azure
         uses: azure/webapps-deploy@v3

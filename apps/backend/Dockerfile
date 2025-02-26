@@ -1,37 +1,25 @@
-# Estágio de construção
 FROM node:22-alpine AS builder
 
 WORKDIR /app
 
 # 1. Copiar dependências
-COPY package.json package-lock.json ./
-
-# 2. Instalar dependências
+COPY apps/backend/package.json apps/backend/package-lock.json ./
 RUN npm ci
 
-# 3. Copiar schema do Prisma
-COPY prisma ./prisma
-
-# 4. Gerar client do Prisma
+# 2. Copiar schema do Prisma
+COPY apps/backend/prisma ./prisma
 RUN npx prisma generate
 
-# 5. Copiar código fonte
-COPY src ./src
+# 3. Copiar código fonte
+COPY apps/backend/src ./src
 
-# 6. Build da aplicação
-RUN npm run build
+# 4. Build com verificação
+RUN npm run build || (echo "Build failed! Logs:"; cat npm-debug.log; exit 1)
 
 # Estágio de produção
 FROM node:22-alpine
-
 WORKDIR /app
-
-# 7. Copiar apenas o necessário
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/prisma ./prisma
-
-# 8. Configuração final
-ENV PORT=8080
-EXPOSE $PORT
 CMD ["node", "dist/main.js"]

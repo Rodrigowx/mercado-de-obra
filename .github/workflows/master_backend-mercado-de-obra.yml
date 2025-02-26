@@ -30,12 +30,10 @@ jobs:
       - name: Build & Push
         uses: docker/build-push-action@v5
         with:
-          context: apps/backend
+          context: .  
           file: apps/backend/Dockerfile
           push: true
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/backend-app:latest
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
 
       - name: Run Migrations
         run: |
