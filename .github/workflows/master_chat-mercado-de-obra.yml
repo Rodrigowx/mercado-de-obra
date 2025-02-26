@@ -1,22 +1,25 @@
-name: Deploy Chat Service (Manual)
+name: Deploy Chat Service
 
 on:
   workflow_dispatch:
     inputs:
-      version:
-        description: 'Versão da imagem (ex: 1.0.0)'
+      branch:
+        description: "Branch para deploy"
         required: true
+        default: "master"
 
 jobs:
   deploy-chat:
     runs-on: ubuntu-latest
     environment: production
-    
+
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.branch }}
 
-      - name: Setup Build Environment
+      - name: Configure Buildx
         uses: docker/setup-buildx-action@v3
 
       - name: Login to Docker Hub
@@ -25,21 +28,21 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_PASSWORD }}
 
-      - name: Build & Push Chat Service
+      - name: Build & Push Image
         uses: docker/build-push-action@v5
         with:
-          context: apps/chat-service
+          context: .
           file: apps/chat-service/Dockerfile
           push: true
           tags: |
-            ${{ secrets.DOCKERHUB_USERNAME }}/chat-service:${{ github.event.inputs.version }}
             ${{ secrets.DOCKERHUB_USERNAME }}/chat-service:latest
           cache-from: type=gha,scope=chat
           cache-to: type=gha,mode=max,scope=chat
-          
+
       - name: Deploy to Azure
         uses: azure/webapps-deploy@v3
         with:
           app-name: 'chat-mercado-de-obra'
           slot-name: 'production'
-          images: '${{ secrets.DOCKERHUB_USERNAME }}/chat-service:latest'
+          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_CHAT }}
+          images: ${{ secrets.DOCKERHUB_USERNAME }}/chat-service:latest
