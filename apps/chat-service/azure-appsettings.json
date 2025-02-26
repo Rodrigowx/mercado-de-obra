@@ -1,0 +1,13 @@
+{
+  "appSettings": [
+    {
+      "name": "WEBSITES_PORT",
+      "value": "8181"
+    },
+    {
+      "name": "DATABASE_URL_MONGO",
+      "value": "$DATABASE_URL_MONGO"
+    }
+  ],
+  "webSocketsEnabled": true
+}
