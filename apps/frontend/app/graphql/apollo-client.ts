@@ -6,7 +6,7 @@ import {jwtDecode} from "jwt-decode";
 import { createUploadLink } from "apollo-upload-client";
 
 const httpUploadLink = createUploadLink({
-  uri: "https://backend-mercado-de-obra-beded3gsgrcedghq.brazilsouth-01.azurewebsites.net/graphqll",
+  uri: "https://backend-mercado-de-obra-beded3gsgrcedghq.brazilsouth-01.azurewebsites.net/graphql",
   credentials: "include",
   headers: {
     "apollo-require-preflight": "true",

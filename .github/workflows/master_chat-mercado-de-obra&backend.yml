@@ -14,6 +14,8 @@ jobs:
     env:
       DATABASE_URL: ${{ secrets.DATABASE_URL }}
       FRONTEND_URL: ${{ secrets.FRONTEND_URL }}
+
+    if: contains(github.event.head_commit.message, 'run-ymlback')
     steps:
       - uses: actions/checkout@v4
 
@@ -120,6 +122,8 @@ jobs:
     permissions:
       id-token: write
       contents: read
+
+    if: contains(github.event.head_commit.message, 'run-ymlback')
     steps:
       - name: Download chat artifact
         uses: actions/download-artifact@v4
