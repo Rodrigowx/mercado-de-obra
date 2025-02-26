@@ -26,13 +26,14 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Set up Docker Buildx
-        id: buildx
         uses: docker/setup-buildx-action@v3
         with:
-          driver: docker-container
-          config-inline: |
-            [worker.containerd]
+          driver: docker
+          buildkitd-config-inline: |
+            [worker.oci]
               enabled = true
+            [worker.containerd]
+              enabled = false
 
       - name: Docker Metadata
         id: meta
