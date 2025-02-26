@@ -14,7 +14,7 @@ permissions:
 
 env:
   REGISTRY: docker.io
-  IMAGE_NAME: ${{ secrets.DOCKERHUB_USERNAME }}/chat-mercado-de-obra
+  IMAGE_NAME: ${{ secrets.DOCKERHUB_USERNAME }}/chat-app
 
 jobs:
   deploy-chat-service:
