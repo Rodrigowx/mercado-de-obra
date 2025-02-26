@@ -18,7 +18,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           ref: ${{ github.event.inputs.branch }}
-          fetch-depth: 0  # Necessário para o Prisma
+          fetch-depth: 0 # Necessário para o Prisma
 
       - name: Configure Buildx
         uses: docker/setup-buildx-action@v3
@@ -32,16 +32,10 @@ jobs:
       - name: Build & Push Image
         uses: docker/build-push-action@v5
         with:
-          context: apps/chat-service
+          context: .
           file: apps/chat-service/Dockerfile
           push: true
-          tags: |
-            ${{ secrets.DOCKERHUB_USERNAME }}/chat-service:latest
-            ${{ secrets.DOCKERHUB_USERNAME }}/chat-service:${{ github.sha }}
-          cache-from: type=gha,scope=chat
-          cache-to: type=gha,mode=max,scope=chat
-          build-args: |
-            NODE_ENV=production
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/chat-service:latest
 
       - name: Run Database Migrations
         run: |
@@ -53,7 +47,7 @@ jobs:
       - name: Deploy to Azure
         uses: azure/webapps-deploy@v3
         with:
-          app-name: 'chat-mercado-de-obra'
-          slot-name: 'production'
+          app-name: "chat-mercado-de-obra"
+          slot-name: "production"
           publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_CHAT }}
           images: ${{ secrets.DOCKERHUB_USERNAME }}/chat-service:latest

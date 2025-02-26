@@ -1,42 +1,25 @@
-# Estágio de construção
-FROM node:22-alpine AS builder
-
-WORKDIR /app
-
-# 1. Copiar configurações e dependências
-COPY apps/chat-service/package*.json .
-COPY apps/chat-service/tsconfig*.json .
-COPY apps/chat-service/prisma ./prisma
-
-# 2. Instalar dependências e gerar Prisma Client
-RUN npm ci && \
-    npx prisma generate && \
-    npx prisma migrate deploy
-
-# 3. Copiar código fonte
-COPY apps/chat-service/src ./src
-
-# 4. Build da aplicação
-RUN npm run build
-
-# Estágio de produção
 FROM node:22-alpine
+
 WORKDIR /app
 
-# Dependências do sistema para Prisma
+# 1. Instala dependências do sistema
 RUN apk add --no-cache openssl libssl3 libc6-compat
 
-# Copiar artefatos de construção
-COPY --from=builder /app/dist ./dist
-COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/prisma ./prisma
+# 2. Copia apenas o necessário
+COPY apps/chat-service/package*.json .
+COPY apps/chat-service/prisma ./prisma
 
-# Configuração de segurança
+# 3. Instala dependências
+RUN npm ci && \
+    npx prisma generate
+
+# 4. Copia todo o código fonte
+COPY apps/chat-service .
+
+# 5. Build da aplicação
+RUN npm run build
+
+# 6. Configuração final
 USER node
-
-# Healthcheck
-HEALTHCHECK --interval=30s --timeout=3s \
-  CMD curl -f http://localhost:$PORT/_health || exit 1
-
-EXPOSE $PORT
+EXPOSE 8181
 CMD ["node", "dist/main.js"]
