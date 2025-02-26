@@ -79,7 +79,7 @@ jobs:
         run: |
           az webapp config set --resource-group mercado-de-obra \
             --name backend-mercado-de-obra \
-            --startup-file "cd apps/backend && npm run start"
+            --startup-file "cd apps/backend && run start:prod"
 
       - name: Deploy backend to Azure Web App
         id: deploy-backend
@@ -130,7 +130,7 @@ jobs:
       id-token: write
       contents: read
 
-    if: contains(github.event.head_commit.message, 'run-ymlback')
+    if: contains(github.event.head_commit.message, 'run-ymlchat')
     steps:
       - name: Download chat artifact
         uses: actions/download-artifact@v4
@@ -151,8 +151,8 @@ jobs:
       - name: Configurar Startup Command no Azure
         run: |
           az webapp config set --resource-group mercado-de-obra \
-            --name backend-mercado-de-obra \
-            --startup-file "cd apps/chat-service && npm run start"
+            --name chat-mercado-de-obra \
+            --startup-file "cd apps/chat-service && run start:prod"
         
 
       - name: Deploy chat to Azure Web App
