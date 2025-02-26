@@ -58,5 +58,4 @@ jobs:
           slot-name: 'Production'
           images: ${{ secrets.DOCKERHUB_USERNAME }}/backend-app:latest
           publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_BACK }}
-          env: |
-            PORT=8080
+
