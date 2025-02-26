@@ -22,4 +22,5 @@ RUN npm run build
 ENV DATABASE_URL_MONGO=$DATABASE_URL_MONGO
 ENV PORT=8181
 USER node
+COPY --chown=node:node . .
 CMD ["node", "dist/main.js"]

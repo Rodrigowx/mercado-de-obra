@@ -42,7 +42,7 @@ jobs:
       - name: Run Migrations
         run: |
           docker run --rm \
-            -e DATABASE_URL_MONGO="${{ secrets.DATABASE_URL_MONGO }}" \ 
+            -e DATABASE_URL_MONGO="${{ secrets.DATABASE_URL_MONGO }}" \
             ${{ secrets.DOCKERHUB_USERNAME }}/chat-service:latest \
             npx prisma migrate deploy
 
