@@ -14,7 +14,6 @@ jobs:
     env:
       DATABASE_URL: ${{ secrets.DATABASE_URL }}
       FRONTEND_URL: ${{ secrets.FRONTEND_URL }}
-
     steps:
       - uses: actions/checkout@v4
 
@@ -50,9 +49,9 @@ jobs:
       - name: Login to Azure
         uses: azure/login@v2
         with:
-          client-id: ${{ secrets.AZURE_CLIENT_ID }}
-          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
-          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_FDCACB85F5764FA0A1CA8889771CA26B }}
+          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_D82A1DC52B094BF5B8B2BAF35E3D97E1 }}
+          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_B8DFDB741F1F4809ABE822BB8B45AF02 }}
 
       - name: Deploy Backend Container to Azure
         run: |
@@ -68,7 +67,6 @@ jobs:
     env:
       DATABASE_URL_MONGO: ${{ secrets.DATABASE_URL_MONGO }}
       FRONTEND_URL: ${{ secrets.FRONTEND_URL }}
-
     steps:
       - uses: actions/checkout@v4
 
@@ -90,9 +88,9 @@ jobs:
       - name: Login to Azure
         uses: azure/login@v2
         with:
-          client-id: ${{ secrets.AZURE_CLIENT_ID }}
-          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
-          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_2D46DA4A57574A1B84C6761DB95F1E86 }}
+          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_0846BE292398488C822C6B31AEE8078F }}
+          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_80DE4F4C51B2457DBB52E547D25611F8 }}
 
       - name: Deploy Chat Container to Azure
         run: |
