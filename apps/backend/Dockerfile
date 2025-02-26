@@ -16,6 +16,9 @@ RUN npm install -g @nestjs/cli
 # Copiando todo o código do backend diretamente para a raiz `/app/`
 COPY apps/backend/ ./
 
+# Gerar Prisma Client antes do build**
+RUN npx prisma generate
+
 # Mudando para a pasta correta antes de compilar
 WORKDIR /app
 
