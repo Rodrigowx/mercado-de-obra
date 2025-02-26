@@ -16,6 +16,9 @@ RUN npm install -g @nestjs/cli
 # Copiando todo o código do Chat-Service diretamente para a raiz `/app/`
 COPY apps/chat-service/ ./
 
+# 🔥 **Gerar o Prisma Client para MongoDB**
+RUN npx prisma generate
+
 # Mudando para a pasta correta antes de compilar
 WORKDIR /app
 
