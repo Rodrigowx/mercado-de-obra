@@ -33,4 +33,5 @@ ENV PORT=8080
 EXPOSE 8080
 
 # ✅ Iniciando a aplicação garantindo que a variável PORT seja usada corretamente
-CMD ["sh", "-c", "PORT=$PORT npm run start:prod"]
+
+CMD ["npm", "run", "start:prod"]
