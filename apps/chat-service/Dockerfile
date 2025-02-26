@@ -1,20 +1,25 @@
-# apps/chat-service/Dockerfile
 FROM node:22-alpine
 
 WORKDIR /app
 
-# MongoDB requer essas libs
+# 1. Dependências do MongoDB
 RUN apk add --no-cache openssl libssl3 libc6-compat
 
-COPY package*.json .
+# 2. Copiar arquivos essenciais primeiro
+COPY package*.json ./
 COPY prisma ./prisma
 
+# 3. Instalar dependências e gerar Prisma
 RUN npm ci && \
     npx prisma generate
 
-COPY src ./src
-COPY tsconfig*.json .
+COPY . .
 
+# 5. Build da aplicação
 RUN npm run build
 
+# 6. Configuração final
+ENV DATABASE_URL_MONGO=$DATABASE_URL_MONGO
+ENV PORT=8181
+USER node
 CMD ["node", "dist/main.js"]

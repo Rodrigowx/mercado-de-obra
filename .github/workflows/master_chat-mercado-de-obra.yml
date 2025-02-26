@@ -29,13 +29,14 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_PASSWORD }}
 
-      - name: Build & Push Image
+      - name: Build Chat Service
         uses: docker/build-push-action@v5
         with:
-          context: .
+          context: apps/chat-service
           file: apps/chat-service/Dockerfile
-          push: true
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/chat-service:latest
+          cache-from: type=gha,scope=chat
+          cache-to: type=gha,mode=max,scope=chat
 
       # No GitHub Actions
       - name: Run Migrations

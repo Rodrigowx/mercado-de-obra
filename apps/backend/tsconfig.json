@@ -16,8 +16,9 @@
     "forceConsistentCasingInFileNames": false,
     "noFallthroughCasesInSwitch": false,
     "moduleResolution": "node",
-    "baseUrl": "./src",
+     "rootDir": "./src",
     "outDir": "./dist",
+    "baseUrl": "./src",
     "paths": {
       "@professionall/*": ["professional/*"],
       "@client/*": ["client/*"],
@@ -35,7 +36,6 @@
     "app/**/*",
     "@types/**/*",
     "server/**/*",
-    "**/*.ts",
     "**/*.tsx",
     "src",
     "**/*.js"

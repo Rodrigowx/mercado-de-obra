@@ -29,22 +29,16 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_PASSWORD }}
 
-      - name: Build & Push Image
+      - name: Build Backend
         uses: docker/build-push-action@v5
         with:
           context: apps/backend
           file: apps/backend/Dockerfile
-          push: true
-          tags: |
-            ${{ secrets.DOCKERHUB_USERNAME }}/backend-app:latest  
-      - name: Run Migrations and Seed
-        run: |
-          docker run --rm \
-            -e DATABASE_URL="${{ secrets.DATABASE_URL}}" \
-            -e NODE_ENV=production \
-            ${{ secrets.DOCKERHUB_USERNAME }}/backend-app:latest \
-            sh -c "npx prisma migrate deploy --schema=./prisma/schema.prisma && \
-                    npx prisma db seed --schema=./prisma/schema.prisma"
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/backend-app:latest  
+          cache-from: type=gha,scope=backend
+          cache-to: type=gha,mode=max,scope=backend
+          build-args: |
+            NODE_ENV=production
 
       - name: Deploy to Azure
         uses: azure/webapps-deploy@v3
