@@ -1,32 +1,29 @@
-# Usando Node.js como base
-FROM node:22
+# Usa a imagem oficial do Node.js
+FROM node:22-alpine
 
-# Criando diretório de trabalho dentro do container
+# Define o diretório de trabalho
 WORKDIR /app
 
-# Copiando apenas os arquivos package.json e package-lock.json primeiro
-COPY apps/backend/package*.json ./apps/backend/
+# Copia apenas arquivos essenciais para otimizar o build
+COPY package.json package-lock.json ./
 
-# Instalando dependências
-RUN cd apps/backend && npm install
+# Instala dependências de produção
+RUN npm install --omit=dev
 
-# Copiando todo o código do backend
+# Copia o backend para dentro do container
 COPY apps/backend ./apps/backend
 
-# Mudando para a pasta correta
+# Define o diretório de trabalho do backend
 WORKDIR /app/apps/backend
 
-# ✅ Gerando os tipos do Prisma antes do build
-RUN npx prisma generate
-
-# ✅ Rodando o build após a geração dos tipos
+# Compila a aplicação se necessário
 RUN npm run build --if-present
 
-# Definindo variável de ambiente para a porta
-ENV PORT=8080
-
-# Expondo a porta correta
+# Expõe a porta que será usada
 EXPOSE 8080
 
-# Iniciando a aplicação no diretório correto
-CMD ["sh", "-c", "npm run start:prod"]
+# Define a variável de ambiente PORT com o valor fornecido pelo Azure
+ENV PORT=8080
+
+# Inicia a aplicação garantindo que a porta correta seja usada
+CMD ["sh", "-c", "PORT=$PORT npm run start:prod"]
