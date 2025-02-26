@@ -26,7 +26,6 @@ COPY apps/backend/src ./src
 COPY apps/backend/app ./app
 COPY apps/backend/server ./server
 COPY apps/backend/middleware.ts ./
-COPY apps/backend/@types ./@types
 
 # 6. Build da aplicação com path aliases
 RUN npm run build

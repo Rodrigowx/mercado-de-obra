@@ -9,13 +9,12 @@ COPY apps/chat-service/tsconfig*.json .
 COPY apps/chat-service/prisma ./prisma
 
 # 2. Instalar dependências e gerar Prisma Client
-RUN npm ci --omit=dev && \
+RUN npm ci && \
     npx prisma generate && \
     npx prisma migrate deploy
 
 # 3. Copiar código fonte
 COPY apps/chat-service/src ./src
-COPY apps/chat-service/test ./test
 
 # 4. Build da aplicação
 RUN npm run build
