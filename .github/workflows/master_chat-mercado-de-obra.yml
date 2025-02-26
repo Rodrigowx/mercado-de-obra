@@ -33,20 +33,16 @@ jobs:
           driver: docker-container
           buildkitd-config-inline: |
             version = "0.1"
-
             [worker]
-              oci:
-                enabled = true
-                network = "host"
-                snapshotter = "overlayfs"
-
+              oci.enabled = true
+              oci.network = "host"
+              platforms = ["linux/amd64"]
             [registry."docker.io"]
               mirrors = ["mirror.gcr.io"]
-              http = true
 
-      - name: Verify Config
+      - name: Validate BuildKit Config
         run: |
-          docker buildx inspect --bootstrap | grep -A 15 'BuildKit configuration:'
+          docker buildx inspect --bootstrap | grep -A 10 'BuildKit configuration'
 
       - name: Docker Metadata
         id: meta

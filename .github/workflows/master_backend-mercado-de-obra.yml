@@ -8,50 +8,36 @@ on:
       - "prisma/**"
   workflow_dispatch:
 
-permissions:
-  contents: read
-  packages: write
-
-env:
-  REGISTRY: docker.io
-  IMAGE_NAME: ${{ secrets.DOCKERHUB_USERNAME }}/backend-app
-
 jobs:
   deploy-backend:
     runs-on: ubuntu-latest
     environment: production
-
     steps:
-      - name: Checkout Code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Set up Docker Buildx
+      - name: Configure Buildx
         uses: docker/setup-buildx-action@v3
         id: buildx
         with:
           driver: docker-container
+          driver-opts: |
+            image=moby/buildkit:v0.14.0
           buildkitd-config-inline: |
             version = "0.1"
 
             [worker]
-              oci:
-                enabled = true
-                network = "host"
-                snapshotter = "overlayfs"
+              oci.enabled = true
+              oci.network = "host"
+              platforms = ["linux/amd64"]
 
             [registry."docker.io"]
               mirrors = ["mirror.gcr.io"]
-              http = true
-
-      - name: Verify Config
-        run: |
-          docker buildx inspect --bootstrap | grep -A 15 'BuildKit configuration:'
 
       - name: Docker Metadata
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ${{ env.IMAGE_NAME }}
+          images: ${{ secrets.DOCKERHUB_USERNAME }}/backend-app
           tags: |
             type=sha,format=long
             type=ref,event=branch
@@ -62,24 +48,23 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_PASSWORD }}
 
-      - name: Build & Push Backend Image
+      - name: Build & Push Backend
         uses: docker/build-push-action@v5
         with:
           context: apps/backend
           file: apps/backend/Dockerfile
           push: true
           tags: ${{ steps.meta.outputs.tags }}
-          cache-from: type=gha,scope=${{ github.workflow }}-backend
-          cache-to: type=gha,mode=max,scope=${{ github.workflow }}-backend
+          cache-from: type=gha,scope=backend
+          cache-to: type=gha,mode=max,scope=backend
           builder: ${{ steps.buildx.outputs.name }}
           provenance: false
-          sbom: false
 
       - name: Run DB Migrations
         run: |
           docker run --rm \
             -e DATABASE_URL="${{ secrets.DATABASE_URL }}" \
-            ${{ env.IMAGE_NAME }}:${{ steps.meta.outputs.version }} \
+            ${{ secrets.DOCKERHUB_USERNAME }}/backend-app:${{ steps.meta.outputs.version }} \
             npx prisma migrate deploy
 
       - name: Deploy to Azure
@@ -87,4 +72,4 @@ jobs:
         with:
           app-name: "backend-mercado-de-obra"
           slot-name: "Production"
-          images: "${{ env.IMAGE_NAME }}:${{ steps.meta.outputs.version }}"
+          images: "${{ secrets.DOCKERHUB_USERNAME }}/backend-app:${{ steps.meta.outputs.version }}"
