@@ -1,33 +1,39 @@
-# Usando Node.js como base
-FROM node:22-alpine
+# --------------------------------------------
+# Stage 1: Build
+# --------------------------------------------
+    FROM node:22-alpine AS builder
 
-# Criando diretório de trabalho dentro do container
-WORKDIR /app
-
-# Copiando apenas os arquivos essenciais para otimizar cache
-COPY apps/chat-service/package.json apps/chat-service/package-lock.json ./
-
-# Instalando apenas as dependências de produção
-RUN npm install --omit=dev
-
-# Instalando o Nest CLI globalmente (se necessário)
-RUN npm install -g @nestjs/cli
-
-# Copiando todo o código do Chat-Service diretamente para a raiz `/app/`
-COPY apps/chat-service/ ./
-
-# 🔥 **Gerar o Prisma Client para MongoDB**
-RUN npx prisma generate
-
-# Mudando para a pasta correta antes de compilar
-WORKDIR /app
-
-# Compilando a aplicação (agora deve funcionar)
-RUN npx nest build
-
-# Definindo variável de ambiente para a porta correta
-ENV PORT=8181
-EXPOSE 8181
-
-# Iniciando a aplicação garantindo que a variável PORT seja usada corretamente
-CMD ["sh", "-c", "npm run start:prod"]
+    WORKDIR /app
+    
+    COPY package.json package-lock.json ./
+    COPY apps/chat-service/package.json ./apps/chat-service/package.json
+    RUN npm install --workspace=chat-service
+    
+    COPY prisma ./prisma
+    RUN npx prisma generate
+    
+    COPY apps/chat-service ./apps/chat-service
+    RUN npm run build --workspace=chat-service
+    
+    # --------------------------------------------
+    # Stage 2: Produção
+    # --------------------------------------------
+    FROM node:22-alpine
+    
+    WORKDIR /app
+    
+    COPY --from=builder /app/package.json /app/package-lock.json ./
+    COPY --from=builder /app/apps/chat-service/package.json ./apps/chat-service/package.json
+    RUN npm install --workspace=chat-service
+    
+    COPY --from=builder /app/apps/chat-service/dist ./dist
+    COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
+    COPY --from=builder /app/prisma ./prisma
+    
+    RUN apk add --no-cache openssl
+    
+    ENV NODE_ENV=production
+    ENV PORT=8181
+    EXPOSE $PORT
+    
+    CMD ["node", "dist/main.js"]
