@@ -18,7 +18,7 @@ jobs:
     env:
       DATABASE_URL_MONGO: ${{ secrets.DATABASE_URL_MONGO }}
       FRONTEND_URL: ${{ secrets.FRONTEND_URL }}
-      PORT: 4000
+      PORT: 8080
     steps:
       - uses: actions/checkout@v4
 
@@ -45,4 +45,4 @@ jobs:
           images: ${{ secrets.DOCKERHUB_USERNAME }}/chat-app:latest
           publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_CHAT }}
           env: |
-            PORT=4000
+            PORT=8080
