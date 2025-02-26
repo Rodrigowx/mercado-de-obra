@@ -1,17 +1,29 @@
-# Usa a imagem do Node.js 22
+# Usando Node.js como base
 FROM node:22
 
-# Define o diretório de trabalho dentro do container
+# Criando diretório de trabalho dentro do container
 WORKDIR /app
 
-# Copia apenas o código do backend
-COPY apps/backend/ .  
+# Copiando apenas os arquivos de backend primeiro (para otimizar cache)
+COPY apps/backend/package*.json ./apps/backend/
 
-# Instala as dependências
-RUN npm install
+# Instalando as dependências apenas do backend
+RUN cd apps/backend && npm install
 
-# Expõe a porta usada pelo backend
-EXPOSE 3000
+# Copiando todo o código do backend
+COPY apps/backend ./apps/backend
 
-# Comando para iniciar o backend
-CMD ["npm", "run", "start:prod"]
+# Mudando para a pasta correta
+WORKDIR /app/apps/backend
+
+# Rodando build (se necessário)
+RUN npm run build --if-present
+
+# Definindo variável de ambiente para a porta
+ENV PORT=8080
+
+# Expondo a porta correta
+EXPOSE 8080
+
+# Iniciando a aplicação no diretório correto
+CMD ["sh", "-c", "npm run start:prod"]
