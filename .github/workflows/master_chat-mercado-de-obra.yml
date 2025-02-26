@@ -44,5 +44,3 @@ jobs:
           slot-name: 'Production'
           images: ${{ secrets.DOCKERHUB_USERNAME }}/chat-app:latest
           publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_CHAT }}
-          env: |
-            PORT=8080
