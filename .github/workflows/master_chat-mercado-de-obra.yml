@@ -18,6 +18,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           ref: ${{ github.event.inputs.branch }}
+          fetch-depth: 0  # Necessário para o Prisma
 
       - name: Configure Buildx
         uses: docker/setup-buildx-action@v3
@@ -31,13 +32,23 @@ jobs:
       - name: Build & Push Image
         uses: docker/build-push-action@v5
         with:
-          context: .
+          context: apps/chat-service
           file: apps/chat-service/Dockerfile
           push: true
           tags: |
             ${{ secrets.DOCKERHUB_USERNAME }}/chat-service:latest
+            ${{ secrets.DOCKERHUB_USERNAME }}/chat-service:${{ github.sha }}
           cache-from: type=gha,scope=chat
           cache-to: type=gha,mode=max,scope=chat
+          build-args: |
+            NODE_ENV=production
+
+      - name: Run Database Migrations
+        run: |
+          docker run --rm \
+            -e DATABASE_URL="${{ secrets.DATABASE_URL_MONGO}}" \
+            ${{ secrets.DOCKERHUB_USERNAME }}/chat-service:latest \
+            npx prisma migrate deploy
 
       - name: Deploy to Azure
         uses: azure/webapps-deploy@v3

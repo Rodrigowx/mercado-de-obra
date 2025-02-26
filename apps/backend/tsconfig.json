@@ -17,6 +17,7 @@
     "noFallthroughCasesInSwitch": false,
     "moduleResolution": "node",
     "baseUrl": "./src",
+    "outDir": "./dist",
     "paths": {
       "@professionall/*": ["professional/*"],
       "@client/*": ["client/*"],

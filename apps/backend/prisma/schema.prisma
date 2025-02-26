@@ -1,6 +1,7 @@
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider     = "postgresql"
+  url          = env("DATABASE_URL")
+  relationMode = "prisma"
 }
 
 generator client {
@@ -39,6 +40,8 @@ model Professional {
 
   budgets Budget[]
   Need    Need[]
+
+  @@index([id])
 }
 
 model Client {
@@ -49,6 +52,8 @@ model Client {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   budgets   Budget[]
+
+  @@index([id])
 }
 
 model Service {
@@ -69,6 +74,9 @@ model Portfolio {
   images         Image[]
   createdAt      DateTime     @default(now())
   updatedAt      DateTime     @default(now())
+
+  @@index([professionalId])
+  @@index([serviceId])
 }
 
 model Image {
@@ -78,6 +86,8 @@ model Image {
   portfolio   Portfolio @relation(fields: [portfolioId], references: [id], onDelete: Cascade)
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
+
+  @@index([portfolioId])
 }
 
 model Location {
@@ -91,6 +101,8 @@ model Location {
   professional   Professional? @relation(fields: [professionalId], references: [id], onDelete: Cascade)
   createdAt      DateTime      @default(now())
   updatedAt      DateTime      @default(now())
+
+  @@index([professionalId])
 }
 
 model PasswordResetCode {
@@ -115,6 +127,9 @@ model Review {
   organization   Int
   createdAt      DateTime      @default(now())
   updatedAt      DateTime      @default(now())
+
+  @@index([clientId])
+  @@index([professionalId])
 }
 
 model Budget {
@@ -136,6 +151,10 @@ model Budget {
   budgetServices BudgetService[]
   createdAt      DateTime        @default(now())
   updatedAt      DateTime        @default(now())
+
+  @@index([needId])
+  @@index([clientId])
+  @@index([professionalId])
 }
 
 model Need {
@@ -152,6 +171,11 @@ model Need {
   serviceId      Int
   budgetId       Int?
   budgets        Budget[]
+
+  @@index([clientId])
+  @@index([professionalId])
+  @@index([serviceId])
+  @@index([budgetId])
 }
 
 model UnitOfMeasurement {
@@ -174,4 +198,8 @@ model BudgetService {
   Service             Service?           @relation(fields: [serviceId], references: [id])
   serviceId           Int?
   serviceValue        Float?
+
+  @@index([budgetId])
+  @@index([unitOfMeasurementId])
+  @@index([serviceId])
 }

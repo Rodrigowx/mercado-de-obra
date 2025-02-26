@@ -1,42 +1,40 @@
-FROM node:22-alpine AS builder
+FROM node:22-alpine
 
 WORKDIR /app
 
-# 1. Instalar dependências críticas
-RUN apk add --no-cache \
-    openssl \
-    libssl3 \
-    openssl-dev \
-    libc6-compat \
-    gcompat \
-    ca-certificates
+# Instala dependências do sistema para Prisma e builds
+RUN apk add --no-cache openssl libssl3 libc6-compat
 
-# 2. Configurar variáveis de ambiente ESSENCIAIS
-ENV LD_LIBRARY_PATH=/usr/lib
-ENV PRISMA_ENGINE_LIBRARY=/usr/lib/libssl.so.3
-ENV PRISMA_QUERY_ENGINE_LIBRARY=/usr/lib/libssl.so.3
+# 1. Copia configurações globais
+COPY tsconfig*.json ./
 
-# 3. Copiar e instalar dependências
-COPY apps/backend/package.json apps/backend/package-lock.json ./
-RUN npm install -g npm@10.9.2 && npm ci
+# 2. Copia configurações específicas do backend
+COPY apps/backend/tsconfig*.json ./apps/backend/
+COPY apps/backend/package*.json ./apps/backend/
 
-# 4. Copiar configurações do projeto
-COPY apps/backend/tsconfig*.json ./
-COPY apps/backend/nest-cli.json ./
-COPY apps/backend/prisma ./prisma
+# 3. Copia arquivos do Prisma
+COPY apps/backend/prisma ./apps/backend/prisma
 
-# 5. Gerar client Prisma
-RUN npx prisma generate --schema=./prisma/schema.prisma
+# 4. Instala dependências e configura path aliases
+WORKDIR /app/apps/backend
+RUN npm ci && \
+    npx prisma generate && \
+    npx prisma migrate deploy
 
-# 6. Copiar código e build
+# 5. Copia todo o código fonte mantendo a estrutura de diretórios
 COPY apps/backend/src ./src
+COPY apps/backend/app ./app
+COPY apps/backend/server ./server
+COPY apps/backend/middleware.ts ./
+COPY apps/backend/@types ./@types
+
+# 6. Build da aplicação com path aliases
 RUN npm run build
 
-# Estágio de produção
-FROM node:22-alpine
-WORKDIR /app
-COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/dist ./dist
-COPY --from=builder /app/prisma ./prisma
+# 7. Configuração de segurança
+USER node
 
-CMD ["node", "dist/main.js"]
+HEALTHCHECK --interval=30s --timeout=3s \
+  CMD curl -f http://localhost:$PORT/_health || exit 1
+
+CMD ["npm", "--prefix", "apps/backend", "run", "start:prod"]
