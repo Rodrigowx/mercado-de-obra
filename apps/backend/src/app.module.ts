@@ -32,7 +32,7 @@ import { ClientModule } from './client/client.module';
     GraphQLModule.forRoot<ApolloDriverConfig>({
       driver: ApolloDriver,
       path: '/graphql',
-      autoSchemaFile: join(process.cwd(), 'src/schema.gql'),
+      autoSchemaFile: join(process.cwd(), 'src/schema.gql'),  
       resolvers: { Upload: GraphQLUpload },
       context: ({ req }) => ({ req }),
     }),

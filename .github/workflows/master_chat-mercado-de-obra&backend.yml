@@ -140,6 +140,14 @@ jobs:
           tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_0846BE292398488C822C6B31AEE8078F }}
           subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_80DE4F4C51B2457DBB52E547D25611F8 }}
 
+
+      - name: Configurar Startup Command no Azure
+        run: |
+          az webapp config set --resource-group mercado-de-obra \
+            --name backend-mercado-de-obra \
+            --startup-file "cd apps/backend && npm run start"
+        
+
       - name: Deploy chat to Azure Web App
         id: deploy-chat
         uses: azure/webapps-deploy@v3
