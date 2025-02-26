@@ -48,12 +48,13 @@ jobs:
           cache-from: type=gha,scope=backend
           cache-to: type=gha,mode=max,scope=backend
 
-      - name: Run Database Migrations
+      - name: Run Migrations
         run: |
           docker run --rm \
+            -v $(pwd)/apps/backend/prisma:/app/prisma \
             -e DATABASE_URL="${{ secrets.DATABASE_URL }}" \
-            ${{ secrets.DOCKERHUB_USERNAME }}/backend-app:${{ github.event.inputs.version }} \
-            npx prisma migrate deploy
+            ${{ secrets.DOCKERHUB_USERNAME }}/backend-app:latest \
+            npx prisma migrate deploy --schema=./prisma/schema.prisma
 
       - name: Deploy to Azure
         uses: azure/webapps-deploy@v3

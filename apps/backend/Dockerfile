@@ -1,27 +1,32 @@
-# apps/backend/Dockerfile
 FROM node:22-alpine AS builder
 
 WORKDIR /app
 
-# 1. Copiar arquivos essenciais
-COPY package.json package-lock.json tsconfig.build.json tsconfig.json ./
+# Instalar dependências do sistema
+RUN apk add --no-cache openssl
 
-# 2. Instalar dependências
+# Copiar dependências
+COPY package.json package-lock.json ./
 RUN npm ci
 
-# 3. Copiar código fonte
-COPY src ./src
+# Copiar schema do Prisma
 COPY prisma ./prisma
 
-# 4. Gerar client do Prisma
-RUN npx prisma generate
+# Gerar client do Prisma
+RUN npx prisma generate --schema=./prisma/schema.prisma
 
-# 5. Build da aplicação
+# Copiar código fonte
+COPY src ./src
+
+# Build da aplicação
 RUN npm run build
 
 # Estágio de produção
 FROM node:22-alpine
 WORKDIR /app
-COPY --from=builder /app/dist ./dist
+
 COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/prisma ./prisma
+
 CMD ["node", "dist/main.js"]

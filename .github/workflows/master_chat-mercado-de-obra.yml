@@ -36,11 +36,10 @@ jobs:
             ${{ secrets.DOCKERHUB_USERNAME }}/chat-service:latest
           cache-from: type=gha,scope=chat
           cache-to: type=gha,mode=max,scope=chat
-
+          
       - name: Deploy to Azure
         uses: azure/webapps-deploy@v3
         with:
           app-name: 'chat-mercado-de-obra'
           slot-name: 'production'
-          images: '${{ secrets.DOCKERHUB_USERNAME }}/chat-service:${{ github.event.inputs.version }}'
-          configuration-file: apps/chat-service/azure-appsettings.json
+          images: '${{ secrets.DOCKERHUB_USERNAME }}/chat-service:latest'
