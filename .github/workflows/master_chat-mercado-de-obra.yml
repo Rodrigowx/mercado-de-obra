@@ -36,11 +36,7 @@ jobs:
               oci.enabled = true
               network = "host"
               platforms = ["linux/amd64"]
-
-      - name: Validate BuildKit Config
-        run: |
-          docker buildx inspect --bootstrap | grep -A 10 'BuildKit configuration'
-
+              
       - name: Docker Metadata
         id: meta
         uses: docker/metadata-action@v5

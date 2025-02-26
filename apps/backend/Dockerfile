@@ -1,55 +1,33 @@
-# --------------------------------------------
-# Stage 1: Build (dependências de desenvolvimento)
-# --------------------------------------------
-    FROM node:22-alpine AS builder
+# Estágio de build
+FROM node:22-alpine AS builder
 
-    WORKDIR /app
+WORKDIR /app
 
-    # Copiar package.json da raiz
-    COPY package.json package-lock.json ./
-    
-    # Copiar workspace específico
-    COPY apps/backend/package.json ./apps/backend/package.json
-    
-    # Instalar dependências
-    RUN npm install --workspace=backend
-    
-    # Copiar schema do Prisma
-    COPY prisma ./prisma
-    
-    # Gerar client
-    RUN npx prisma generate
-    
-    # Copiar código fonte
-    COPY apps/backend ./apps/backend
-    
-    # Build
-    RUN npm run build --workspace=backend
-    
-    # --------------------------------------------
-    # Stage 2: Produção (somente o necessário)
-    # --------------------------------------------
-    FROM node:22-alpine
-    
-    WORKDIR /app
-    
-    # 1. Instalar apenas dependências de produção
-    COPY --from=builder /app/package.json /app/package-lock.json ./
-    COPY --from=builder /app/apps/backend/package.json ./apps/backend/package.json
-    RUN npm install --workspace=backend
-    
-    # 2. Copiar assets de build
-    COPY --from=builder /app/apps/backend/dist ./dist
-    COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
-    COPY --from=builder /app/prisma ./prisma
-    
-    # 3. Dependências do sistema
-    RUN apk add --no-cache openssl
-    
-    # 4. Configurações de ambiente
-    ENV NODE_ENV=production
-    ENV PORT=8080
-    EXPOSE $PORT
-    
-    # 5. Iniciar aplicação
-    CMD ["node", "dist/main.js"]
+# 1. Copiar package.json da raiz e do workspace
+COPY ../../package.json ../../package-lock.json ./
+COPY ./package.json ./apps/backend/package.json
+
+# 2. Instalar dependências
+RUN npm install --workspace=backend
+
+# 3. Copiar código e schema do Prisma
+COPY ../../apps/backend/prisma ./prisma
+COPY ../../apps/backend .
+
+# 4. Gerar client do Prisma
+RUN npx prisma generate
+
+# 5. Build da aplicação
+RUN npm run build
+
+# Estágio de produção
+FROM node:22-alpine
+
+WORKDIR /app
+
+COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/prisma ./prisma
+
+EXPOSE 8080
+CMD ["node", "dist/main.js"]
