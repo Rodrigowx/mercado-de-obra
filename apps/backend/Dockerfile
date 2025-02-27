@@ -10,9 +10,11 @@ RUN apk add --no-cache openssl libssl3 libc6-compat python3 make g++
 COPY package*.json ./
 COPY prisma ./prisma
 COPY tsconfig*.json ./
+COPY nest-cli.json ./
 
 # 3. Instala dependências
 RUN npm ci --loglevel verbose && \
+    npm install -g @nestjs/cli && \
     npx prisma generate --schema=./prisma/schema.prisma
 
 # 4. Copia o restante do código
