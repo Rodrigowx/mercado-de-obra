@@ -12,8 +12,8 @@ jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
     permissions:
-      id-token: write # Necessário para solicitar o OIDC JWT Token
-      contents: read # Necessário se você usa token do GitHub para repositórios privados
+      id-token: write   # Necessário para solicitar o OIDC JWT Token
+      contents: read    # Necessário se você usa token do GitHub para repositórios privados
 
     steps:
       - name: Checkout to the branch
@@ -43,7 +43,6 @@ jobs:
           push: true
           tags: |
             ${{ secrets.DOCKERHUB_USERNAME }}/backend-app:latest
-
           build-args: |
             AZURE_STORAGE_CONNECTION_STRING=${{ secrets.AZURE_STORAGE_CONNECTION_STRING }}
             AZURE_STORAGE_ACCOUNT_NAME=${{ secrets.AZURE_STORAGE_ACCOUNT_NAME }}
@@ -53,6 +52,20 @@ jobs:
             AZURE_COMMUNICATION_EMAIL_SENDER=${{ secrets.AZURE_COMMUNICATION_EMAIL_SENDER }}
             DATABASE_URL=${{ secrets.DATABASE_URL }}
             FRONTEND_URL=${{ secrets.FRONTEND_URL }}
+
+      # 🚀 Rodar as migrações do Prisma
+      - name: Run Prisma Migrations
+        run: |
+          IMAGE_NAME="${{ secrets.DOCKERHUB_USERNAME }}/backend-app:latest"
+          echo "Executando migrações do Prisma na imagem: $IMAGE_NAME"
+          docker run --rm -e DATABASE_URL="${{ secrets.DATABASE_URL }}" $IMAGE_NAME npx prisma migrate deploy
+
+      # 🌱 Rodar o Prisma Seed para popular o banco de dados
+      - name: Run Prisma Seed
+        run: |
+          IMAGE_NAME="${{ secrets.DOCKERHUB_USERNAME }}/backend-app:latest"
+          echo "Executando seed do Prisma na imagem: $IMAGE_NAME"
+          docker run --rm -e DATABASE_URL="${{ secrets.DATABASE_URL }}" $IMAGE_NAME npx prisma db seed
 
       # 🚀 Deploy no Azure Container Apps
       - name: Deploy to Azure Container Apps
