@@ -35,6 +35,7 @@ jobs:
           push: true
           tags: |
             rodrigowx/backend-app:latest
+            rodrigowx/backend-app:${{ github.sha }}
           build-args: |
             AZURE_STORAGE_CONNECTION_STRING=${{ secrets.AZURE_STORAGE_CONNECTION_STRING }}
             AZURE_STORAGE_ACCOUNT_NAME=${{ secrets.AZURE_STORAGE_ACCOUNT_NAME }}
