@@ -20,8 +20,6 @@ COPY . .
 RUN npm run build
 
 # 6. Configuração final
-ARG DATABASE_URL
-ENV DATABASE_URL=$DATABASE_URL
 ENV PORT=3000
 USER node
 CMD ["node", "dist/main.js"]

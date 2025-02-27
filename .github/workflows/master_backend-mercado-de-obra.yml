@@ -43,7 +43,7 @@ jobs:
       - name: Run Migrations
         run: |
           docker run --rm \
-            -e DATABASE_URL_MONGO="${{ secrets.DATABASE_URL }}" \
+            -e DATABASE_URL="${{ secrets.DATABASE_URL }}" \  
             ${{ secrets.DOCKERHUB_USERNAME }}/backend-app:latest \
             npx prisma migrate deploy
 
