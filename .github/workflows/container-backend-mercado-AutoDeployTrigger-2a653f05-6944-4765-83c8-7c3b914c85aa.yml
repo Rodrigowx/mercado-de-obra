@@ -2,19 +2,18 @@ name: Trigger auto deployment for container-backend-mercado
 
 on:
   workflow_dispatch:
-  push:
-    branches: 
-      - master
-    paths:
-      - '**'
-      - '.github/workflows/container-backend-mercado-AutoDeployTrigger-2a653f05-6944-4765-83c8-7c3b914c85aa.yml'   
+    inputs:
+      branch:
+        description: "Branch para deploy"
+        required: true
+        default: "master"
 
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
-    permissions: 
-      id-token: write   # Necessário para solicitar o OIDC JWT Token
-      contents: read    # Necessário se você usa token do GitHub para repositórios privados
+    permissions:
+      id-token: write # Necessário para solicitar o OIDC JWT Token
+      contents: read # Necessário se você usa token do GitHub para repositórios privados
 
     steps:
       - name: Checkout to the branch
@@ -44,7 +43,7 @@ jobs:
           push: true
           tags: |
             ${{ secrets.DOCKERHUB_USERNAME }}/backend-app:latest
-      
+
           build-args: |
             AZURE_STORAGE_CONNECTION_STRING=${{ secrets.AZURE_STORAGE_CONNECTION_STRING }}
             AZURE_STORAGE_ACCOUNT_NAME=${{ secrets.AZURE_STORAGE_ACCOUNT_NAME }}
