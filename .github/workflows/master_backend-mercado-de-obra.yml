@@ -39,7 +39,14 @@ jobs:
           cache-from: type=gha,scope=backend
           cache-to: type=gha,mode=max,scope=backend
           build-args: |
-            NODE_ENV=production
+            AZURE_STORAGE_CONNECTION_STRING=${{ secrets.AZURE_STORAGE_CONNECTION_STRING }}
+            AZURE_STORAGE_ACCOUNT_NAME=${{ secrets.AZURE_STORAGE_ACCOUNT_NAME }}
+            AZURE_STORAGE_ACCOUNT_KEY=${{ secrets.AZURE_STORAGE_ACCOUNT_KEY }}
+            AZURE_STORAGE_CONTAINER_NAME=${{ secrets.AZURE_STORAGE_CONTAINER_NAME }}
+            AZURE_COMMUNICATION_EMAIL_CONNECTION_STRING=${{ secrets.AZURE_COMMUNICATION_EMAIL_CONNECTION_STRING }}
+            AZURE_COMMUNICATION_EMAIL_SENDER=${{ secrets.AZURE_COMMUNICATION_EMAIL_SENDER }}
+            DATABASE_URL=${{ secrets.DATABASE_URL }}
+            FRONTEND_URL=${{ secrets.FRONTEND_URL }}
 
       - name: Run Migrations
         run: |
