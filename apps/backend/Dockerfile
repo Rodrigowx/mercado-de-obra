@@ -22,4 +22,4 @@ RUN npm run build
 # 6. Configuração final
 ENV PORT=3000
 USER node
-CMD ["node", "dist/main.js"]
+CMD ["node", "dist/src/main.js"]
