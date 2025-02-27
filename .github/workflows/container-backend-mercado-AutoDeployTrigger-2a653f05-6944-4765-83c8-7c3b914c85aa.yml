@@ -27,21 +27,15 @@ jobs:
           tenant-id: ${{ secrets.CONTAINERBACKENDMERCADO_AZURE_TENANT_ID }}
           subscription-id: ${{ secrets.CONTAINERBACKENDMERCADO_AZURE_SUBSCRIPTION_ID }}
 
-      - name: Build and push container image to registry
-        uses: azure/container-apps-deploy-action@v2
+      - name: Build and push container image to Docker Hub
+        uses: docker/build-push-action@v5
         with:
-          # Defina o caminho do código-fonte (appSourcePath) para a pasta backend
-          appSourcePath: ${{ github.workspace }}/apps/backend
-          # Como o Dockerfile está na raiz de apps/backend, use um caminho relativo:
-          dockerfilePath: Dockerfile
-          registryUrl: docker.io
-          registryUsername: ${{ secrets.CONTAINERBACKENDMERCADO_REGISTRY_USERNAME }}
-          registryPassword: ${{ secrets.CONTAINERBACKENDMERCADO_REGISTRY_PASSWORD }}
-          containerAppName: container-backend-mercado
-          resourceGroup: mercado-de-obra
-          # Use a tag desejada, por exemplo, "latest"
-          imageToBuild: rodrigowx/backend-app:latest
-          buildArguments: |
+          context: apps/backend
+          file: apps/backend/Dockerfile
+          push: true
+          tags: |
+            rodrigowx/backend-app:latest
+          build-args: |
             AZURE_STORAGE_CONNECTION_STRING=${{ secrets.AZURE_STORAGE_CONNECTION_STRING }}
             AZURE_STORAGE_ACCOUNT_NAME=${{ secrets.AZURE_STORAGE_ACCOUNT_NAME }}
             AZURE_STORAGE_ACCOUNT_KEY=${{ secrets.AZURE_STORAGE_ACCOUNT_KEY }}
@@ -50,3 +44,13 @@ jobs:
             AZURE_COMMUNICATION_EMAIL_SENDER=${{ secrets.AZURE_COMMUNICATION_EMAIL_SENDER }}
             DATABASE_URL=${{ secrets.DATABASE_URL }}
             FRONTEND_URL=${{ secrets.FRONTEND_URL }}
+
+      - name: Deploy to Azure Container Apps
+        uses: azure/container-apps-deploy-action@v2
+        with:
+          containerAppName: container-backend-mercado
+          resourceGroup: mercado-de-obra
+          registryUrl: docker.io
+          registryUsername: ${{ secrets.CONTAINERBACKENDMERCADO_REGISTRY_USERNAME }}
+          registryPassword: ${{ secrets.CONTAINERBACKENDMERCADO_REGISTRY_PASSWORD }}
+          imageToBuild: rodrigowx/backend-app:latest
