@@ -35,8 +35,11 @@ jobs:
           context: apps/chat-service
           file: apps/chat-service/Dockerfile
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/chat-app:latest
+          load: true
           cache-from: type=gha,scope=chat
           cache-to: type=gha,mode=max,scope=chat
+          build-args: |
+            NODE_ENV=production
 
       # No GitHub Actions
       - name: Run Migrations
