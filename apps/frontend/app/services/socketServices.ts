@@ -28,7 +28,7 @@ interface Message {
  * Conecta o socket passando o userId via query para o handshake.
  */
 export function connectSocket(userId: number) {
-  socket = io(process.env.CHAT_URI || "http://localhost:3001", {
+  socket = io(process.env.NEXT_PUBLIC_CHAT_URI || "http://localhost:3001", {
     query: { userId: userId.toString() },
   });
 

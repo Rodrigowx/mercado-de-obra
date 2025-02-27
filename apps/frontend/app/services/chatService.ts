@@ -1,5 +1,5 @@
 // app/services/chatService.ts
-export const BASE_URL = `${process.env.CHAT_URI || 'http://localhost:3001'}/chat`;
+export const BASE_URL = `${process.env.NEXT_PUBLIC_CHAT_URI || 'http://localhost:3001'}/chat`;
 
 /**
  * Cria uma conversa entre client e professional

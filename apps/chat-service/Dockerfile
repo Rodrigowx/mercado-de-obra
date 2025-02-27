@@ -1,38 +1,43 @@
 FROM node:22-alpine
 
+# Define o diretório de trabalho
 WORKDIR /usr/src/app
 
-# 1. Dependências do MongoDB
-RUN apk add --no-cache openssl libssl3 libc6-compat
+# 1. Instala dependências do sistema e build tools
+RUN apk add --no-cache openssl libssl3 libc6-compat python3 make g++
 
-# 2. Copiar arquivos essenciais primeiro
+# 2. Copia apenas arquivos essenciais para cache eficiente
 COPY package.json ./
 COPY prisma ./prisma
 COPY tsconfig*.json ./
 COPY nest-cli.json ./
 
-# 3. Instalar dependências e gerar Prisma
-RUN npm install --loglevel verbose && \
+# 3. Instala dependências
+RUN npm install && \
     npm install -g @nestjs/cli && \
     npx prisma generate --schema=./prisma/schema.prisma
 
-# 4. Copiar o restante do código
+# 4. Copia o restante do código
 COPY . .
 
 # ✅ DEPURAÇÃO: Mostrar estrutura de arquivos ANTES do build
-RUN echo "========== ANTES DO BUILD ==========" && ls -R .
+RUN echo "========== ANTES DO BUILD =========="
 
 # 5. Build da aplicação
 RUN npm run build
 
 # ✅ DEPURAÇÃO: Mostrar estrutura de arquivos DEPOIS do build
-RUN echo "========== DEPOIS DO BUILD ==========" && ls -R dist
+RUN echo "========== DEPOIS DO BUILD =========="
 
-# 6. Configuração final
+
 ARG DATABASE_URL_MONGO
-ENV DATABASE_URL_MONGO=$DATABASE_URL_MONGO
-ENV PORT=4000
-USER node
+ARG FRONTEND_URL
 
-# Ajuste conforme a estrutura encontrada
+ENV DATABASE_URL_MONGO=$DATABASE_URL_MONGO
+ENV FRONTEND_URL=$FRONTEND_URL
+ENV PORT=4000
+
+# ✅ DEPURAÇÃO: Mostrar variáveis de ambiente no log do container
+RUN echo "========== VARIÁVEIS DE AMBIENTE CONFIGURADAS ==========" && env
+# Executa a aplicação
 CMD ["node", "dist/main.js"]
