@@ -14,28 +14,38 @@ jobs:
     environment: production
 
     steps:
+      # 1. Faz checkout do repositório
       - name: Checkout Code
         uses: actions/checkout@v4
         with:
           ref: ${{ github.event.inputs.branch }}
           fetch-depth: 0 
 
+      # 2. Configura o builder de Docker
       - name: Configure Buildx
         uses: docker/setup-buildx-action@v3
 
+      # 3. Login no Docker Hub
       - name: Login to Docker Hub
         uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_PASSWORD }}
 
-      - name: Build Backend
+      # 4. Build + Push da imagem no Docker Hub
+      - name: Build and Push Backend
         uses: docker/build-push-action@v5
         with:
           context: apps/backend
           file: apps/backend/Dockerfile
-          tags: ${{ secrets.DOCKERHUB_USERNAME }}/backend-app:latest 
-          load: true  
+          # Definimos duas tags:
+          #  1. latest (sempre a versão atual)
+          #  2. github.sha (para identificar builds unicamente)
+          tags: |
+            ${{ secrets.DOCKERHUB_USERNAME }}/backend-app:latest
+            ${{ secrets.DOCKERHUB_USERNAME }}/backend-app:${{ github.sha }}
+          push: true           # <--- Garante que a imagem seja enviada ao Docker Hub
+          load: true           # <--- Disponibiliza a imagem localmente para o próximo passo (migração)
           cache-from: type=gha,scope=backend
           cache-to: type=gha,mode=max,scope=backend
           build-args: |
@@ -48,8 +58,10 @@ jobs:
             DATABASE_URL=${{ secrets.DATABASE_URL }}
             FRONTEND_URL=${{ secrets.FRONTEND_URL }}
 
+      # 5. Roda as migrações Prisma dentro da imagem recem-buildada
       - name: Run Migrations
         run: |
+          # Aqui podemos usar a tag "latest" ou a tag com commit SHA
           IMAGE_NAME="${{ secrets.DOCKERHUB_USERNAME }}/backend-app:latest"
           echo "Executando migrações na imagem: $IMAGE_NAME"
           
@@ -58,10 +70,13 @@ jobs:
             $IMAGE_NAME \
             npx prisma migrate deploy
 
+      # 6. Deploy ao Azure Web App
       - name: Deploy to Azure
         uses: azure/webapps-deploy@v3
         with:
           app-name: "backend-mercado-de-obra"
           slot-name: "production"
           publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_BACK }}
+          # Aqui indicamos qual tag o Azure deve usar.
+          # Pode ser :latest ou :${{ github.sha }}.
           images: ${{ secrets.DOCKERHUB_USERNAME }}/backend-app:latest
