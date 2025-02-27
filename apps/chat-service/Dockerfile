@@ -11,7 +11,8 @@ COPY prisma ./prisma
 
 # 3. Instalar dependências e gerar Prisma
 RUN npm ci && \
-    npx prisma generate
+    npm install -g @nestjs/cli && \
+    npx prisma generate --schema=./prisma/schema.prisma
 
 COPY . .
 
