@@ -1,13 +1,13 @@
 name: Trigger auto deployment for container-backend-mercado
 
 on:
+  workflow_dispatch:
   push:
     branches: 
       - master
     paths:
       - '**'
-      - '.github/workflows/container-backend-mercado-AutoDeployTrigger-2a653f05-6944-4765-83c8-7c3b914c85aa.yml'
-  workflow_dispatch:      
+      - '.github/workflows/container-backend-mercado-AutoDeployTrigger-2a653f05-6944-4765-83c8-7c3b914c85aa.yml'   
 
 jobs:
   build-and-deploy:
