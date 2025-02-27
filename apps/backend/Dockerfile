@@ -53,9 +53,5 @@ ENV PORT=3000
 
 # ✅ DEPURAÇÃO: Mostrar variáveis de ambiente no log do container
 RUN echo "========== VARIÁVEIS DE AMBIENTE CONFIGURADAS ==========" && env
-
-# Define usuário para segurança
-USER node
-
 # Executa a aplicação
 CMD ["node", "dist/main.js"]
