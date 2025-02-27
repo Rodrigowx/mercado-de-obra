@@ -39,7 +39,8 @@ jobs:
           cache-from: type=gha,scope=chat
           cache-to: type=gha,mode=max,scope=chat
           build-args: |
-            NODE_ENV=production
+            FRONTEND_URL=${{ secrets.FRONTEND_URL }}
+            DATABASE_URL_MONGO=${{ secrets.DATABASE_URL_MONGO }}
 
       # No GitHub Actions
       - name: Run Migrations
