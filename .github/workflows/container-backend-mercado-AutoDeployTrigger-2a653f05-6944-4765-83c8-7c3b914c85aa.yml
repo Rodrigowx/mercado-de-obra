@@ -1,29 +1,27 @@
 name: Trigger auto deployment for container-backend-mercado
 
-# When this action will be executed
 on:
-  # Automatically trigger it when detected changes in repo
   push:
     branches: 
-      [ master ]
+      - master
     paths:
-    - '**'
-    - '.github/workflows/container-backend-mercado-AutoDeployTrigger-2a653f05-6944-4765-83c8-7c3b914c85aa.yml'
-
-  # Allow manual trigger 
+      - '**'
+      - '.github/workflows/container-backend-mercado-AutoDeployTrigger-2a653f05-6944-4765-83c8-7c3b914c85aa.yml'
   workflow_dispatch:      
 
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
     permissions: 
-      id-token: write #This is required for requesting the OIDC JWT Token
-      contents: read #Required when GH token is used to authenticate with private repo
+      id-token: write   # Necessário para solicitar o OIDC JWT Token
+      contents: read    # Necessário se você usa token do GitHub para repositórios privados
 
     steps:
+      # 1. Faz checkout do código
       - name: Checkout to the branch
         uses: actions/checkout@v2
 
+      # 2. Login na Azure (OIDC)
       - name: Azure Login
         uses: azure/login@v1
         with:
@@ -31,18 +29,35 @@ jobs:
           tenant-id: ${{ secrets.CONTAINERBACKENDMERCADO_AZURE_TENANT_ID }}
           subscription-id: ${{ secrets.CONTAINERBACKENDMERCADO_AZURE_SUBSCRIPTION_ID }}
 
+      # 3. Build e Deploy no Azure Container Apps
       - name: Build and push container image to registry
         uses: azure/container-apps-deploy-action@v2
         with:
-          appSourcePath: ${{ github.workspace }}apps/backend
-          _dockerfilePathKey_: _dockerfilePath_
+          # Caminho do código-fonte (onde está o seu app)
+          appSourcePath: ${{ github.workspace }}/apps/backend
+
+          # Caminho para o Dockerfile
+          dockerfilePath: ${{ github.workspace }}/apps/backend/Dockerfile
+
+          # URL do Registry (Docker Hub)
           registryUrl: docker.io
           registryUsername: ${{ secrets.CONTAINERBACKENDMERCADO_REGISTRY_USERNAME }}
           registryPassword: ${{ secrets.CONTAINERBACKENDMERCADO_REGISTRY_PASSWORD }}
+
+          # Nome do Container App e Resource Group no Azure
           containerAppName: container-backend-mercado
           resourceGroup: mercado-de-obra
-          imageToBuild: rodrigowx/container-backend-mercado:${{ github.sha }}
-          _buildArgumentsKey_: |
-            _buildArgumentsValues_
 
+          # Nome e tag da imagem (usando o commit SHA para identificar builds)
+          imageToBuild: rodrigowx/container-backend-mercado:latest
 
+          # Build arguments (caso precise passar variáveis para o Dockerfile)
+          buildArguments: |
+            AZURE_STORAGE_CONNECTION_STRING=${{ secrets.AZURE_STORAGE_CONNECTION_STRING }}
+            AZURE_STORAGE_ACCOUNT_NAME=${{ secrets.AZURE_STORAGE_ACCOUNT_NAME }}
+            AZURE_STORAGE_ACCOUNT_KEY=${{ secrets.AZURE_STORAGE_ACCOUNT_KEY }}
+            AZURE_STORAGE_CONTAINER_NAME=${{ secrets.AZURE_STORAGE_CONTAINER_NAME }}
+            AZURE_COMMUNICATION_EMAIL_CONNECTION_STRING=${{ secrets.AZURE_COMMUNICATION_EMAIL_CONNECTION_STRING }}
+            AZURE_COMMUNICATION_EMAIL_SENDER=${{ secrets.AZURE_COMMUNICATION_EMAIL_SENDER }}
+            DATABASE_URL=${{ secrets.DATABASE_URL }}
+            FRONTEND_URL=${{ secrets.FRONTEND_URL }}
