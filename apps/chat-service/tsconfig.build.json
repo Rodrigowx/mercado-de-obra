@@ -1,19 +1,8 @@
 {
   "extends": "./tsconfig.json",
   "compilerOptions": {
-<<<<<<< HEAD
-    // Garante que gere os .js
-    "noEmit": false,
-    "emitDeclarationOnly": false,
-    "declaration": true,
-    "outDir": "apps/backend/dist"
-  },
-  "exclude": ["node_modules", "test", "dist", "**/*.spec.ts"],
-  "include": ["src/**/*"]
-=======
     "outDir": "./dist",
     "rootDir": "./src"
   },
   "exclude": ["**/*.spec.ts", "**/*.test.ts", "**/*.e2e-spec.ts"]
->>>>>>> 645a780dda3256c4aa9e51d614eae31b0456cc8b
 }
