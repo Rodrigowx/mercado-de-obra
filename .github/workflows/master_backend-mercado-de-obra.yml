@@ -43,7 +43,6 @@ jobs:
           #  2. github.sha (para identificar builds unicamente)
           tags: |
             ${{ secrets.DOCKERHUB_USERNAME }}/backend-app:latest
-            ${{ secrets.DOCKERHUB_USERNAME }}/backend-app:${{ github.sha }}
           push: true           # <--- Garante que a imagem seja enviada ao Docker Hub
           load: true           # <--- Disponibiliza a imagem localmente para o próximo passo (migração)
           cache-from: type=gha,scope=backend
@@ -79,4 +78,4 @@ jobs:
           publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_BACK }}
           # Aqui indicamos qual tag o Azure deve usar.
           # Pode ser :latest ou :${{ github.sha }}.
-          images: ${{ secrets.DOCKERHUB_USERNAME }}/backend-app:latest
+          images: index.docker.io/${{ secrets.DOCKERHUB_USERNAME }}/backend-app:latest
