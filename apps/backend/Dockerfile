@@ -3,32 +3,36 @@ FROM node:22-alpine
 # Define o diretório de trabalho
 WORKDIR /usr/src/app
 
-# 1. Instala dependências do sistema e build tools
-RUN apk add --no-cache openssl libssl3 libc6-compat python3 make g++
+# 1️⃣ Instala dependências do sistema e build tools necessárias para compilar dependências nativas
+RUN apk add --no-cache \
+    openssl \
+    libssl3 \
+    libc6-compat \
+    python3 \
+    make \
+    g++
 
-# 2. Copia apenas arquivos essenciais para cache eficiente
-COPY package.json ./
+# 2️⃣ Copia apenas arquivos essenciais para cache eficiente
+COPY package.json package-lock.json ./
 COPY prisma ./prisma
 COPY tsconfig*.json ./
 COPY nest-cli.json ./
 
-# 3. Instala dependências
-RUN npm install --loglevel verbose && \
+# 3️⃣ Instala dependências
+RUN npm install && \
     npm install -g @nestjs/cli && \
     npx prisma generate --schema=./prisma/schema.prisma
 
-# 4. Copia o restante do código
+# 4️⃣ Copia o restante do código necessário para a aplicação
 COPY . .
 
-# 5. Build da aplicação
+# 5️⃣ Compila a aplicação (gera `dist/`, incluindo `dist/prisma/seed.js`)
 RUN npm run build
 
-RUN apk add --no-cache tree && echo "========== Conteúdo de 'dist' ==========" && tree dist
+# 6️⃣ Garante que o seed.ts esteja presente e compilado
+RUN ls -la dist/prisma/
 
-
-# 6. Configuração final
-
-# Recebe as variáveis do ambiente e define no container
+# 7️⃣ Define variáveis de ambiente
 ARG AZURE_STORAGE_CONNECTION_STRING
 ARG AZURE_STORAGE_ACCOUNT_NAME
 ARG AZURE_STORAGE_ACCOUNT_KEY
@@ -48,7 +52,8 @@ ENV DATABASE_URL=$DATABASE_URL
 ENV FRONTEND_URL=$FRONTEND_URL
 ENV PORT=3000
 
-# ✅ DEPURAÇÃO: Mostrar variáveis de ambiente no log do container
+# ✅ Debug opcional: Mostrar variáveis de ambiente no log do container
 RUN echo "========== VARIÁVEIS DE AMBIENTE CONFIGURADAS ==========" && env
-# Executa a aplicação
+
+# 8️⃣ Comando final para rodar a aplicação
 CMD ["node", "dist/main.js"]
