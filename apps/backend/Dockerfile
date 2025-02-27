@@ -20,8 +20,14 @@ RUN npm install --loglevel verbose && \
 # 4. Copia o restante do código
 COPY . .
 
+# ✅ DEPURAÇÃO: Mostrar estrutura de arquivos ANTES do build
+RUN echo "========== ANTES DO BUILD ==========" && ls -R .
+
 # 5. Build da aplicação
 RUN npm run build
+
+# ✅ DEPURAÇÃO: Mostrar estrutura de arquivos DEPOIS do build
+RUN echo "========== DEPOIS DO BUILD ==========" && ls -R dist
 
 # 6. Configuração final
 ENV PORT=3000
