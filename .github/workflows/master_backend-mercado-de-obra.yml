@@ -34,7 +34,8 @@ jobs:
         with:
           context: apps/backend
           file: apps/backend/Dockerfile
-          tags: ${{ secrets.DOCKERHUB_USERNAME }}/backend-app:latest  
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/backend-app:latest 
+          load: true  
           cache-from: type=gha,scope=backend
           cache-to: type=gha,mode=max,scope=backend
           build-args: |
@@ -42,9 +43,12 @@ jobs:
 
       - name: Run Migrations
         run: |
+          IMAGE_NAME="${{ secrets.DOCKERHUB_USERNAME }}/backend-app:latest"
+          echo "Executando migrações na imagem: $IMAGE_NAME"
+          
           docker run --rm \
-            -e DATABASE_URL="${{ secrets.DATABASE_URL }}" \  
-            ${{ secrets.DOCKERHUB_USERNAME }}/backend-app:latest \
+            -e DATABASE_URL="${{ secrets.DATABASE_URL }}" \
+            $IMAGE_NAME \
             npx prisma migrate deploy
 
       - name: Deploy to Azure
