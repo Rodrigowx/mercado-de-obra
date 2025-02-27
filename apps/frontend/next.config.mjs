@@ -2,12 +2,13 @@
 const nextConfig = {
   reactStrictMode: true,
   images: {
+    domains: ["azureblobmercadodeobra.blob.core.windows.net"], // ✅ Correto!
     remotePatterns: [
       {
         protocol: "https",
-        hostname: "mercadodeobrapic.blob.core.windows.net",
+        hostname: "azureblobmercadodeobra.blob.core.windows.net",
         port: "",
-        pathname: "/**",
+        pathname: "/container-mercado-de-obra/**",
       },
     ],
   },
