@@ -64,4 +64,4 @@ jobs:
           registryUrl: docker.io
           registryUsername: ${{ secrets.DOCKERHUB_USERNAME }}
           registryPassword: ${{ secrets.DOCKERHUB_PASSWORD }}
-          imageToBuild: ${{ secrets.DOCKERHUB_USERNAME }}/backend-app:latest
+          imageToDeploy: ${{ secrets.DOCKERHUB_USERNAME }}/backend-app:latest
