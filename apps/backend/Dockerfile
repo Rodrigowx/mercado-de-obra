@@ -23,4 +23,4 @@ RUN npm run build && ls -R dist
 # 6. Configuração final
 ENV PORT=3000
 USER node
-CMD ["node", "dist/src/main.js"]
+CMD ["node", "dist/main.js"]
