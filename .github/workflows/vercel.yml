@@ -14,10 +14,10 @@ jobs:
 
     steps:
       - name: Checkout do código
-        uses: actions/checkout@v4
+        uses: actions/checkout@v3
 
-      - name: Instalar dependências
-        run: npm install
+      - name: Instalar Vercel CLI
+        run: npm install -g vercel
 
       # ✅ Definir as variáveis de ambiente no build do Vercel
       - name: Configurar variáveis de ambiente
