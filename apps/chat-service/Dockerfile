@@ -1,6 +1,6 @@
 FROM node:22-alpine
 
-WORKDIR /app
+WORKDIR /usr/src/app
 
 # 1. Dependências do MongoDB
 RUN apk add --no-cache openssl libssl3 libc6-compat
@@ -23,5 +23,4 @@ ARG DATABASE_URL_MONGO
 ENV DATABASE_URL_MONGO=$DATABASE_URL_MONGO
 ENV PORT=8181
 USER node
-COPY --chown=node:node . .
 CMD ["node", "dist/main.js"]
