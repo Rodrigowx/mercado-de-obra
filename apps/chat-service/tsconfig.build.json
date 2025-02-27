@@ -1,4 +1,12 @@
 {
   "extends": "./tsconfig.json",
-  "exclude": ["node_modules", "test", "dist", "**/*spec.ts"]
+  "compilerOptions": {
+    // Garante que gere os .js
+    "noEmit": false,
+    "emitDeclarationOnly": false,
+    "declaration": true,
+    "outDir": "apps/backend/dist"
+  },
+  "exclude": ["node_modules", "test", "dist", "**/*.spec.ts"],
+  "include": ["src/**/*"]
 }
