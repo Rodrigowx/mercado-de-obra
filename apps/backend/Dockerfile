@@ -6,7 +6,8 @@ WORKDIR /app
 RUN apk add --no-cache openssl libssl3 libc6-compat python3 make g++
 
 # 2. Copia apenas o necessário para cache
-COPY package*.json ./
+COPY package.json ./
+COPY nest-cli.json ./
 COPY prisma ./prisma
 COPY tsconfig*.json ./
 
