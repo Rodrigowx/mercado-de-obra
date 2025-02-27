@@ -6,7 +6,7 @@ WORKDIR /usr/src/app
 RUN apk add --no-cache openssl libssl3 libc6-compat
 
 # 2. Copiar arquivos essenciais primeiro
-COPY package*.json ./
+COPY package.json ./
 COPY prisma ./prisma
 COPY tsconfig*.json ./
 COPY nest-cli.json ./
