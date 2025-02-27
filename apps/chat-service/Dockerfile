@@ -37,7 +37,5 @@ ENV DATABASE_URL_MONGO=$DATABASE_URL_MONGO
 ENV FRONTEND_URL=$FRONTEND_URL
 ENV PORT=4000
 
-# ✅ DEPURAÇÃO: Mostrar variáveis de ambiente no log do container
-RUN echo "========== VARIÁVEIS DE AMBIENTE CONFIGURADAS ==========" && env
 # Executa a aplicação
 CMD ["node", "dist/main.js"]

@@ -14,7 +14,16 @@ jobs:
 
     steps:
       - name: Checkout do código
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
+
+      - name: Instalar dependências
+        run: npm install
+
+      # ✅ Definir as variáveis de ambiente no build do Vercel
+      - name: Configurar variáveis de ambiente
+        run: |
+          echo "NEXT_PUBLIC_GRAPHQL_URI=${{ secrets.NEXT_PUBLIC_GRAPHQL_URI }}" >> .env
+          echo "NEXT_PUBLIC_CHAT_URI=${{ secrets.NEXT_PUBLIC_CHAT_URI }}" >> .env
 
       - name: Instalar Vercel CLI
         run: npm install -g vercel
@@ -22,5 +31,10 @@ jobs:
       - name: Configurar Projeto na Vercel
         run: vercel link --yes --token ${{ secrets.VERCEL_TOKEN }}
 
+      # 🔵 Build com as variáveis de ambiente antes do deploy
+      - name: Build do Projeto
+        run: vercel build --token ${{ secrets.VERCEL_TOKEN }}
+
+      # 🚀 Deploy para Produção na Vercel
       - name: Deploy na Vercel
-        run: vercel --prod --yes --token ${{ secrets.VERCEL_TOKEN }}
+        run: vercel deploy --prod --yes --token ${{ secrets.VERCEL_TOKEN }}
