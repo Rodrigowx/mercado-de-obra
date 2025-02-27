@@ -24,6 +24,6 @@ RUN npm run build
 # 6. Configuração final
 ARG DATABASE_URL_MONGO
 ENV DATABASE_URL_MONGO=$DATABASE_URL_MONGO
-ENV PORT=8181
+ENV PORT=4000
 USER node
 CMD ["node", "dist/main.js"]
