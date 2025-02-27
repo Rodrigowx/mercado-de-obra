@@ -52,27 +52,6 @@ jobs:
             AZURE_COMMUNICATION_EMAIL_SENDER=${{ secrets.AZURE_COMMUNICATION_EMAIL_SENDER }}
             DATABASE_URL=${{ secrets.DATABASE_URL }}
             FRONTEND_URL=${{ secrets.FRONTEND_URL }}
-
-      # 🚀 Rodar as migrações do Prisma
-      - name: Run Prisma Migrations
-        run: |
-          IMAGE_NAME="${{ secrets.DOCKERHUB_USERNAME }}/backend-app:latest"
-          echo "Executando migrações do Prisma na imagem: $IMAGE_NAME"
-          docker run --rm \
-            -e DATABASE_URL="${{ secrets.DATABASE_URL }}" \
-            $IMAGE_NAME \
-            npx prisma migrate deploy
-
-      # 🌱 Rodar o Prisma Seed para popular o banco de dados
-      - name: Run Prisma Seed
-        run: |
-          IMAGE_NAME="${{ secrets.DOCKERHUB_USERNAME }}/backend-app:latest"
-          echo "Executando seed do Prisma na imagem: $IMAGE_NAME"
-          docker run --rm \
-            -e DATABASE_URL="${{ secrets.DATABASE_URL }}" \
-            $IMAGE_NAME \
-            npx prisma db seed
-
       # 🚀 Deploy no Azure Container Apps
       - name: Deploy to Azure Container Apps
         uses: azure/container-apps-deploy-action@v2
