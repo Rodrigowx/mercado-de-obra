@@ -40,13 +40,11 @@ export class ProfessionalResolver {
   //   return true;
   // }
 
-  /**
-   * Busca um Professional pelo ID
-   */
-  // @Query(() =>)
-  // async getProfessionalByUserId(@Args('id', { type: () => Int }) id: number) {
-  //   return this.professionalService.findById(id);
-  // }
+  @Query()
+  async getProfessionalByUserId(@Args('id', { type: () => Int }) id: number) {
+    return this.professionalService.findById(id);
+  }
+
 
   /**
    * Busca todas as skills de um profissional
