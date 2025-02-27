@@ -8,6 +8,8 @@ RUN apk add --no-cache openssl libssl3 libc6-compat
 # 2. Copiar arquivos essenciais primeiro
 COPY package*.json ./
 COPY prisma ./prisma
+COPY tsconfig*.json ./
+COPY nest-cli.json ./
 
 # 3. Instalar dependências e gerar Prisma
 RUN npm ci && \
