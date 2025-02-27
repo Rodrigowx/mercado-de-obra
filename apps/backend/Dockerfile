@@ -18,7 +18,7 @@ RUN npm ci --loglevel verbose && \
 COPY . .
 
 # 5. Build da aplicação
-RUN npm run build
+RUN npm run build && ls -R dist
 
 # 6. Configuração final
 ENV PORT=3000
