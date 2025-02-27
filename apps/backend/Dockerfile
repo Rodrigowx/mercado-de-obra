@@ -7,7 +7,7 @@ WORKDIR /usr/src/app
 RUN apk add --no-cache openssl libssl3 libc6-compat python3 make g++
 
 # 2. Copia apenas arquivos essenciais para cache eficiente
-COPY package*.json ./
+COPY package.json ./
 COPY prisma ./prisma
 COPY tsconfig*.json ./
 COPY nest-cli.json ./
