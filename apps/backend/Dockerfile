@@ -13,7 +13,7 @@ COPY tsconfig*.json ./
 COPY nest-cli.json ./
 
 # 3. Instala dependências
-RUN npm ci --loglevel verbose && \
+RUN npm install --loglevel verbose && \
     npm install -g @nestjs/cli && \
     npx prisma generate --schema=./prisma/schema.prisma
 
