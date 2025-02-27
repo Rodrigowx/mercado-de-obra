@@ -20,14 +20,11 @@ RUN npm install --loglevel verbose && \
 # 4. Copia o restante do código
 COPY . .
 
-# ✅ DEPURAÇÃO: Mostrar estrutura de arquivos ANTES do build
-RUN echo "========== ANTES DO BUILD =========="
-
 # 5. Build da aplicação
 RUN npm run build
 
-# ✅ DEPURAÇÃO: Mostrar estrutura de arquivos DEPOIS do build
-RUN echo "========== DEPOIS DO BUILD =========="
+RUN apk add --no-cache tree && echo "========== Conteúdo de 'dist' ==========" && tree dist
+
 
 # 6. Configuração final
 
