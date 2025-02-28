@@ -2,6 +2,7 @@ import { Resolver, Query, Args, Int } from '@nestjs/graphql';
 import { ProfessionalService } from './professional.service';
 
 import { Portfolio } from './portfolio/models/portfolio.model';
+import { Professional } from './models/Professional.model';
 
 import { UploaderImagesService } from '../common/uploader/uploader-images.service';
 
@@ -39,8 +40,7 @@ export class ProfessionalResolver {
   //   await this.uploaderImagesService.uploadMultipleFiles(files);
   //   return true;
   // }
-
-  @Query()
+  @Query(() => Professional, { nullable: true })
   async getProfessionalByUserId(@Args('id', { type: () => Int }) id: number) {
     return this.professionalService.findById(id);
   }
