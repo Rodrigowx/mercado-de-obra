@@ -19,7 +19,7 @@ COPY tsconfig*.json ./
 COPY nest-cli.json ./
 
 # 3️⃣ Instala dependências
-RUN npm install --legacy-peer-deps && \
+RUN npm install && \
     npm install -g @nestjs/cli && \
     npx prisma generate --schema=./prisma/schema.prisma
 
