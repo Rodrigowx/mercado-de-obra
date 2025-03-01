@@ -2,7 +2,6 @@
 const nextConfig = {
   reactStrictMode: true,
   images: {
-    domains: ["azureblobmercadodeobra.blob.core.windows.net"], // ✅ Correto!
     remotePatterns: [
       {
         protocol: "https",

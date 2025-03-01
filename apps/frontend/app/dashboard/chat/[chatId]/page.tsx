@@ -484,15 +484,15 @@ export default function ChatPage({ params }: { params: { chatId: string } }) {
                 </div>
               );
             })}
-            <div ref={messagesEndRef} />
-            {Object.values(typingUsers).length > 0 && (
-              <div className="flex animate-pulse items-center text-sm text-gray-500 dark:text-gray-400 italic mt-2">
-                <TiMessageTyping className="mr-1" />
-                {Object.values(typingUsers).join(", ").split(" ")[0]} está
-                digitando...
-              </div>
-            )}
           </div>
+          <div ref={messagesEndRef} />
+          {Object.values(typingUsers).length > 0 && (
+            <div className="flex animate-pulse items-center text-sm text-gray-500 dark:text-gray-400 italic m-5">
+              <TiMessageTyping className="mr-1" />
+              {Object.values(typingUsers).join(", ").split(" ")[0]} está
+              digitando...
+            </div>
+          )}
 
           {/* Área de Digitação */}
           <div className="border-t border-gray-300 dark:border-gray-700 p-3 flex items-center space-x-2">
@@ -593,8 +593,7 @@ export default function ChatPage({ params }: { params: { chatId: string } }) {
                   R${" "}
                   {budgetServices
                     .reduce(
-                      (acc, cur) =>
-                        acc + (Number(cur.serviceValue) || 0) ,
+                      (acc, cur) => acc + (Number(cur.serviceValue) || 0),
                       0
                     )
                     .toFixed(2)}

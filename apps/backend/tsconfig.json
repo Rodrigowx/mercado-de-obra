@@ -9,7 +9,7 @@
     "emitDeclarationOnly": false,
     "target": "ES2021",
     "sourceMap": true,
-    "incremental": true,
+    "incremental": false,
     "skipLibCheck": true,
     "strictNullChecks": false,
     "noImplicitAny": false,
@@ -17,7 +17,7 @@
     "forceConsistentCasingInFileNames": false,
     "noFallthroughCasesInSwitch": false,
     "moduleResolution": "node",
-     "rootDir": "./src",
+    "rootDir": "./src",
     "outDir": "./dist",
     "baseUrl": "./src",
     "paths": {
@@ -35,10 +35,11 @@
     "middleware.ts",
     "src/**/*",
     "app/**/*",
-    "@types/**/*",
     "server/**/*",
+    "types/**/*",
     "**/*.tsx",
-    "src",
-    "**/*.js"
-  ]
+    "**/*.js",
+    "**/*.ts"
+]
+
 }

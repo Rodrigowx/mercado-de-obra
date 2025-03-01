@@ -1,8 +1,14 @@
 "use client";
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useState, useEffect, useRef, useContext } from "react";
-import { FaGoogle, FaFacebook, FaEye, FaEyeSlash } from "react-icons/fa";
-import { GraphQLRequest, useMutation } from "@apollo/client";
+import {
+  FaGoogle,
+  FaFacebook,
+  FaEye,
+  FaEyeSlash,
+  FaSpinner,
+} from "react-icons/fa";
+import { useMutation } from "@apollo/client";
 import { AuthContext } from "./AuthContext";
 import {
   LOGIN_USER,
@@ -28,14 +34,8 @@ function validatePhoneNumber(phoneNumber: string): boolean {
   return phoneRegex.test(phoneNumber);
 }
 
-const AuthModal: React.FC<AuthModalProps> = ({
-  mode: initialMode,
-  onClose,
-}) => {
-  // Estado para o modo geral: "login" | "signup" | "forgotpassword"
-  const [mode, setMode] = useState<"login" | "signup" | "forgotpassword">(
-    initialMode
-  );
+const AuthModal: React.FC<AuthModalProps> = ({ mode: initialMode, onClose }) => {
+  const [mode, setMode] = useState<"login" | "signup" | "forgotpassword">(initialMode);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
@@ -49,41 +49,32 @@ const AuthModal: React.FC<AuthModalProps> = ({
     "Um caractere especial",
   ]);
   const [showPasswordErrors, setShowPasswordErrors] = useState(false);
-
   const [emailError, setEmailError] = useState("");
   const [phoneError, setPhoneError] = useState("");
-
   const [showPassword, setShowPassword] = useState(false);
-
+  
   const [loginMutation] = useMutation(LOGIN_USER);
   const [registerMutation] = useMutation(REGISTER_USER);
   const [requestPasswordReset] = useMutation(REQUEST_PASSWORD_RESET);
   const [validateResetCode] = useMutation(VALIDATE_RESET_CODE);
-  const [resetPassword] = useMutation(RESET_PASSWORD);
-
-  const { login  } = useContext(AuthContext);
-
+  const [resetPasswordMutation] = useMutation(RESET_PASSWORD);
+  
+  const { login } = useContext(AuthContext);
+  
   // Estados para o fluxo de redefinição de senha
-  const [step, setStep] = useState<
-    "sendEmail" | "validateCode" | "resetPassword"
-  >("sendEmail");
-  const [codeInputs, setCodeInputs] = useState<string[]>([
-    "",
-    "",
-    "",
-    "",
-    "",
-    "",
-  ]);
+  const [step, setStep] = useState<"sendEmail" | "validateCode" | "resetPassword">("sendEmail");
+  const [codeInputs, setCodeInputs] = useState<string[]>(["", "", "", "", "", ""]);
   const [newPassword, setNewPassword] = useState("");
   const [resendTimeout, setResendTimeout] = useState(30);
-
   const [codeError, setCodeError] = useState("");
   const [resetPasswordError, setResetPasswordError] = useState("");
-
+  
+  // Estado para controlar o loading
+  const [loading, setLoading] = useState(false);
+  
   // Referências para os inputs do código
   const codeInputRefs = useRef<(HTMLInputElement | null)[]>([]);
-
+  
   useEffect(() => {
     // Resetar estados ao mudar de modo
     setEmail("");
@@ -108,14 +99,14 @@ const AuthModal: React.FC<AuthModalProps> = ({
     setResetPasswordError("");
     setResendTimeout(30);
   }, [mode]);
-
+  
   useEffect(() => {
     if (resendTimeout > 0) {
       const timer = setTimeout(() => setResendTimeout(resendTimeout - 1), 1000);
       return () => clearTimeout(timer);
     }
   }, [resendTimeout]);
-
+  
   const handlePasswordChange = (value: string) => {
     setPassword(value);
     if (mode === "signup") {
@@ -127,26 +118,23 @@ const AuthModal: React.FC<AuthModalProps> = ({
         "Um número",
         "Um caractere especial",
       ];
-      if (value.length >= 8)
-        errors.splice(errors.indexOf("Mínimo de 8 caracteres"), 1);
-      if (/[A-Z]/.test(value))
-        errors.splice(errors.indexOf("Uma letra maiúscula"), 1);
-      if (/[a-z]/.test(value))
-        errors.splice(errors.indexOf("Uma letra minúscula"), 1);
+      if (value.length >= 8) errors.splice(errors.indexOf("Mínimo de 8 caracteres"), 1);
+      if (/[A-Z]/.test(value)) errors.splice(errors.indexOf("Uma letra maiúscula"), 1);
+      if (/[a-z]/.test(value)) errors.splice(errors.indexOf("Uma letra minúscula"), 1);
       if (/[0-9]/.test(value)) errors.splice(errors.indexOf("Um número"), 1);
-      if (/[@$!%*?&#]/.test(value))
-        errors.splice(errors.indexOf("Um caractere especial"), 1);
+      if (/[@$!%*?&#]/.test(value)) errors.splice(errors.indexOf("Um caractere especial"), 1);
       setPasswordErrors(errors);
     }
   };
-
+  
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setEmailError("");
     setPhoneError("");
     setCodeError("");
     setResetPasswordError("");
-
+    setLoading(true);
+  
     if (
       (mode === "signup" ||
         mode === "login" ||
@@ -154,21 +142,25 @@ const AuthModal: React.FC<AuthModalProps> = ({
       !validateEmail(email)
     ) {
       setEmailError("Email inválido. Verifique o formato.");
+      setLoading(false);
       return;
     }
-
+  
+    // Cadastro com login automático
     if (mode === "signup") {
       if (!validatePhoneNumber(phone)) {
         setPhoneError("Número inválido. Digite DDD + número. Ex: 11998765432");
+        setLoading(false);
         return;
       }
-
+  
       if (passwordErrors.length > 0) {
+        setLoading(false);
         return;
       }
-
+  
       const formattedPhone = `+55${phone}`;
-
+  
       try {
         const { data } = await registerMutation({
           variables: {
@@ -181,13 +173,18 @@ const AuthModal: React.FC<AuthModalProps> = ({
             },
           },
         });
-
-        console.log("Usuário criado:", data.name);
-
-
-        // Fechar modal após cadastro
+  
+        console.log("Usuário criado:", data.register.name);
+  
+        // Realiza login automático após cadastro
+        const loginData = await loginMutation({
+          variables: { email, password, role },
+        });
+        console.log("Token recebido:", loginData.data.login.accessToken);
+        login(loginData.data.login.accessToken);
+  
         onClose();
-      } catch (error : any) {
+      } catch (error: any) {
         console.error("Erro ao enviar dados:", error);
         if (error.graphQLErrors && error.graphQLErrors.length > 0) {
           const validationMessage = error.graphQLErrors[0].message;
@@ -199,15 +196,14 @@ const AuthModal: React.FC<AuthModalProps> = ({
               "Já existe um usuário com este email e este tipo de conta (role)"
             )
           ) {
-            setEmailError(
-              "Já existe um usuário cadastrado com este email para este tipo de conta."
-            );
+            setEmailError("Já existe um usuário cadastrado com este email para este tipo de conta.");
           }
         }
       }
+      setLoading(false);
       return;
     }
-
+  
     if (mode === "login") {
       try {
         const { data } = await loginMutation({ variables: { email, password, role } });
@@ -219,15 +215,14 @@ const AuthModal: React.FC<AuthModalProps> = ({
         if (error.graphQLErrors && error.graphQLErrors.length > 0) {
           const msg = error.graphQLErrors[0].message;
           if (msg.includes("Credenciais inválidas")) {
-            setEmailError(
-              "Credenciais inválidas. Verifique email, senha e tipo de conta."
-            );
+            setEmailError("Credenciais inválidas. Verifique email, senha e tipo de conta.");
           }
         }
       }
+      setLoading(false);
       return;
     }
-
+  
     if (mode === "forgotpassword" && step === "sendEmail") {
       try {
         await requestPasswordReset({ variables: { email, role } });
@@ -243,24 +238,23 @@ const AuthModal: React.FC<AuthModalProps> = ({
           }
         }
       }
+      setLoading(false);
     }
   };
-
+  
   const handleValidateCode = async () => {
     const fullCode = codeInputs.join("");
     if (fullCode.length !== 6) {
       setCodeError("Preencha todos os campos do código.");
       return;
     }
-
+  
+    setLoading(true);
     try {
       await validateResetCode({ variables: { email, role, code: fullCode } });
-      // Somente muda para o próximo passo se a validação for bem-sucedida
       setStep("resetPassword");
     } catch (error: any) {
       console.error("Erro ao validar o código:", error);
-
-      // Extrai a mensagem do erro do Apollo e a exibe no front
       if (error.graphQLErrors && error.graphQLErrors.length > 0) {
         const errorMessage =
           error.graphQLErrors[0].message || "Erro desconhecido.";
@@ -269,16 +263,18 @@ const AuthModal: React.FC<AuthModalProps> = ({
         setCodeError("Código inválido ou expirado.");
       }
     }
+    setLoading(false);
   };
-
+  
   const handleResetPassword = async () => {
     if (newPassword.length < 8) {
       setResetPasswordError("A senha deve ter pelo menos 8 caracteres.");
       return;
     }
-
+  
+    setLoading(true);
     try {
-      await resetPassword({ variables: { email, role, newPassword } });
+      await resetPasswordMutation({ variables: { email, role, newPassword } });
       alert("Senha redefinida com sucesso!");
       setMode("login");
       setStep("sendEmail");
@@ -306,11 +302,13 @@ const AuthModal: React.FC<AuthModalProps> = ({
       console.error("Erro ao redefinir a senha:", error);
       setResetPasswordError("Erro ao redefinir a senha.");
     }
+    setLoading(false);
   };
-
+  
   const handleResendCode = async () => {
     if (resendTimeout > 0) return;
-
+  
+    setLoading(true);
     try {
       await requestPasswordReset({ variables: { email, role } });
       console.log("Código de redefinição reenviado");
@@ -319,46 +317,43 @@ const AuthModal: React.FC<AuthModalProps> = ({
       console.error("Erro ao reenviar código de redefinição:", error);
       setEmailError("Erro ao reenviar o código. Tente novamente.");
     }
+    setLoading(false);
   };
-
-  // Função para atualizar os campos de entrada do código
+  
   const handleCodeChange = (index: number, value: string) => {
-    if (value.length > 1 || isNaN(Number(value))) return; // Permite apenas um dígito numérico
+    if (value.length > 1 || isNaN(Number(value))) return;
     const newInputs = [...codeInputs];
     newInputs[index] = value;
     setCodeInputs(newInputs);
-
-    // Move automaticamente para o próximo campo se o atual for preenchido
+  
     if (value && index < 5) {
       codeInputRefs.current[index + 1]?.focus();
     }
   };
-
+  
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
       <div className="bg-white dark:bg-gray-800 p-8 rounded-lg shadow-lg w-full max-w-md relative overflow-auto max-h-screen">
-        <button
-          onClick={onClose}
-          className="absolute top-4 right-4 text-gray-600 hover:text-gray-800"
-        >
+        {loading && (
+          <div className="absolute inset-0 z-10 flex items-center justify-center bg-black bg-opacity-50">
+            <FaSpinner className="animate-spin text-white text-4xl" />
+          </div>
+        )}
+        <button onClick={onClose} className="absolute top-4 right-4 text-gray-600 hover:text-gray-800">
           <b>X</b>
         </button>
-
-        {/* Renderização Condicional baseada no modo */}
+  
         {mode !== "forgotpassword" ? (
           <>
             <h2 className="text-2xl font-bold mb-4 text-center text-primary">
               {mode === "login" ? "Login" : "Cadastrar"}
             </h2>
-
+  
             <form onSubmit={handleSubmit} className="space-y-4">
               {mode === "signup" && (
                 <>
                   <div>
-                    <label
-                      htmlFor="name"
-                      className="block text-sm font-medium mb-1"
-                    >
+                    <label htmlFor="name" className="block text-sm font-medium mb-1">
                       Nome
                     </label>
                     <input
@@ -371,10 +366,7 @@ const AuthModal: React.FC<AuthModalProps> = ({
                     />
                   </div>
                   <div>
-                    <label
-                      htmlFor="phone"
-                      className="block text-sm font-medium mb-1"
-                    >
+                    <label htmlFor="phone" className="block text-sm font-medium mb-1">
                       Telefone (DDD + Número)
                     </label>
                     <input
@@ -389,19 +381,14 @@ const AuthModal: React.FC<AuthModalProps> = ({
                       required
                       placeholder="Ex: 11998765432"
                     />
-                    {phoneError && (
-                      <span className="text-red-500 text-sm">{phoneError}</span>
-                    )}
+                    {phoneError && <span className="text-red-500 text-sm">{phoneError}</span>}
                   </div>
                 </>
               )}
-
+  
               {(mode === "login" || mode === "signup") && (
                 <div>
-                  <label
-                    htmlFor="email"
-                    className="block text-sm font-medium mb-1"
-                  >
+                  <label htmlFor="email" className="block text-sm font-medium mb-1">
                     Email
                   </label>
                   <input
@@ -415,18 +402,13 @@ const AuthModal: React.FC<AuthModalProps> = ({
                     className="w-full border border-primary rounded-lg p-2"
                     required
                   />
-                  {emailError && (
-                    <span className="text-red-500 text-sm">{emailError}</span>
-                  )}
+                  {emailError && <span className="text-red-500 text-sm">{emailError}</span>}
                 </div>
               )}
-
+  
               {(mode === "signup" || mode === "login") && (
                 <div className="relative">
-                  <label
-                    htmlFor="password"
-                    className="block text-sm font-medium mb-1"
-                  >
+                  <label htmlFor="password" className="block text-sm font-medium mb-1">
                     Senha
                   </label>
                   <div>
@@ -444,65 +426,45 @@ const AuthModal: React.FC<AuthModalProps> = ({
                       className="absolute top-9 right-3 text-gray-600 hover:text-gray-800"
                       tabIndex={-1}
                     >
-                      {showPassword ? (
-                        <FaEyeSlash className="text-primary" />
-                      ) : (
-                        <FaEye />
-                      )}
+                      {showPassword ? <FaEyeSlash className="text-primary" /> : <FaEye />}
                     </button>
                   </div>
-                  {mode === "signup" &&
-                    showPasswordErrors &&
-                    passwordErrors.length > 0 && (
-                      <ul className="text-sm mt-2">
-                        {passwordErrors.map((error, index) => (
-                          <li
-                            key={index}
-                            className={
-                              passwordErrors.includes(error)
-                                ? "text-red-500"
-                                : "text-green-500"
-                            }
-                          >
-                            - {error}
-                          </li>
-                        ))}
-                      </ul>
-                    )}
+                  {mode === "signup" && showPasswordErrors && passwordErrors.length > 0 && (
+                    <ul className="text-sm mt-2">
+                      {passwordErrors.map((error, index) => (
+                        <li
+                          key={index}
+                          className={passwordErrors.includes(error) ? "text-red-500" : "text-green-500"}
+                        >
+                          - {error}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
                 </div>
               )}
-
+  
               <div className="flex flex-col items-center mt-6">
                 <span className="text-sm mb-2">Escolha o tipo de conta:</span>
                 <div className="flex items-center space-x-4">
-                  <span
-                    className={
-                      'text-sm ${role === "CLIENT" ? "text-primary" : "text-gray-500"}'
-                    }
-                  >
+                  <span className={`text-sm ${role === "CLIENT" ? "text-primary" : "text-gray-500"}`}>
                     Cliente
                   </span>
                   <label className="relative inline-flex items-center cursor-pointer">
                     <input
                       type="checkbox"
                       checked={role === "PROFESSIONAL"}
-                      onChange={() =>
-                        setRole(role === "CLIENT" ? "PROFESSIONAL" : "CLIENT")
-                      }
+                      onChange={() => setRole(role === "CLIENT" ? "PROFESSIONAL" : "CLIENT")}
                       className="sr-only peer"
                     />
                     <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-primary rounded-full peer dark:bg-gray-700 peer-checked:bg-primary transition duration-300 before:absolute before:top-1 before:left-1 before:bg-white before:rounded-full before:h-4 before:w-4 before:transition-transform peer-checked:before:translate-x-5"></div>
                   </label>
-                  <span
-                    className={
-                      'text-sm ${role === "PROFESSIONAL" ? "text-primary" : "text-gray-500"}'
-                    }
-                  >
+                  <span className={`text-sm ${role === "PROFESSIONAL" ? "text-primary" : "text-gray-500"}`}>
                     Profissional
                   </span>
                 </div>
               </div>
-
+  
               <button
                 type="submit"
                 className="w-full bg-primary text-white rounded-lg py-2 font-medium hover:bg-primary-dark"
@@ -512,7 +474,6 @@ const AuthModal: React.FC<AuthModalProps> = ({
             </form>
           </>
         ) : (
-          // Fluxo de Redefinição de Senha
           <>
             {step === "sendEmail" && (
               <form onSubmit={handleSubmit} className="space-y-4">
@@ -520,8 +481,7 @@ const AuthModal: React.FC<AuthModalProps> = ({
                   Redefinir Senha
                 </h2>
                 <p className="text-sm mb-4 text-center">
-                  Insira o email cadastrado para receber o código de
-                  redefinição.
+                  Insira o email cadastrado para receber o código de redefinição.
                 </p>
                 <input
                   type="email"
@@ -534,30 +494,22 @@ const AuthModal: React.FC<AuthModalProps> = ({
                   className="w-full border border-primary rounded-lg p-2 mb-2"
                   required
                 />
-                {emailError && (
-                  <p className="text-red-500 text-sm">{emailError}</p>
-                )}
-
+                {emailError && <p className="text-red-500 text-sm">{emailError}</p>}
+  
                 <div className="flex items-center justify-center space-x-4">
-                  <span
-                    className={`text-sm ${role === "CLIENT" ? "text-primary" : "text-gray-500"}`}
-                  >
+                  <span className={`text-sm ${role === "CLIENT" ? "text-primary" : "text-gray-500"}`}>
                     Cliente
                   </span>
                   <label className="relative inline-flex items-center cursor-pointer">
                     <input
                       type="checkbox"
                       checked={role === "PROFESSIONAL"}
-                      onChange={() =>
-                        setRole(role === "CLIENT" ? "PROFESSIONAL" : "CLIENT")
-                      }
+                      onChange={() => setRole(role === "CLIENT" ? "PROFESSIONAL" : "CLIENT")}
                       className="sr-only peer"
                     />
                     <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-primary rounded-full peer dark:bg-gray-700 peer-checked:bg-primary transition duration-300 before:absolute before:top-1 before:left-1 before:bg-white before:rounded-full before:h-4 before:w-4 before:transition-transform peer-checked:before:translate-x-5"></div>
                   </label>
-                  <span
-                    className={`text-sm ${role === "PROFESSIONAL" ? "text-primary" : "text-gray-500"}`}
-                  >
+                  <span className={`text-sm ${role === "PROFESSIONAL" ? "text-primary" : "text-gray-500"}`}>
                     Profissional
                   </span>
                 </div>
@@ -569,7 +521,7 @@ const AuthModal: React.FC<AuthModalProps> = ({
                 </button>
               </form>
             )}
-
+  
             {step === "validateCode" && (
               <div className="space-y-4">
                 <h2 className="text-2xl font-bold mb-4 text-center text-primary">
@@ -594,9 +546,7 @@ const AuthModal: React.FC<AuthModalProps> = ({
                     />
                   ))}
                 </div>
-                {codeError && (
-                  <p className="text-red-500 text-sm mt-2">{codeError}</p>
-                )}
+                {codeError && <p className="text-red-500 text-sm mt-2">{codeError}</p>}
                 <button
                   onClick={handleValidateCode}
                   className="w-full bg-primary text-white rounded-lg py-2 font-medium hover:bg-primary-dark mt-4"
@@ -607,18 +557,14 @@ const AuthModal: React.FC<AuthModalProps> = ({
                   onClick={handleResendCode}
                   disabled={resendTimeout > 0}
                   className={`w-full mt-2 ${
-                    resendTimeout > 0
-                      ? "bg-gray-400 cursor-not-allowed"
-                      : "bg-primary"
+                    resendTimeout > 0 ? "bg-gray-400 cursor-not-allowed" : "bg-primary"
                   } text-white rounded-lg py-2 font-medium hover:bg-primary-dark`}
                 >
-                  {resendTimeout > 0
-                    ? `Reenviar Código (${resendTimeout}s)`
-                    : "Reenviar Código"}
+                  {resendTimeout > 0 ? `Reenviar Código (${resendTimeout}s)` : "Reenviar Código"}
                 </button>
               </div>
             )}
-
+  
             {step === "resetPassword" && (
               <div className="space-y-4">
                 <h2 className="text-2xl font-bold mb-4 text-center text-primary">
@@ -648,26 +594,19 @@ const AuthModal: React.FC<AuthModalProps> = ({
             )}
           </>
         )}
-
-        {/* Links de navegação entre modos */}
+  
         <div className="mt-4 text-center">
           {mode === "login" && (
             <>
               <p className="text-sm">
                 Não tem conta?{" "}
-                <span
-                  onClick={() => setMode("signup")}
-                  className="text-primary cursor-pointer hover:underline"
-                >
+                <span onClick={() => setMode("signup")} className="text-primary cursor-pointer hover:underline">
                   Cadastre-se
                 </span>
               </p>
               <p className="text-sm mt-2">
                 Esqueceu a senha?{" "}
-                <span
-                  onClick={() => setMode("forgotpassword")}
-                  className="text-primary cursor-pointer hover:underline"
-                >
+                <span onClick={() => setMode("forgotpassword")} className="text-primary cursor-pointer hover:underline">
                   Redefinir
                 </span>
               </p>
@@ -676,10 +615,7 @@ const AuthModal: React.FC<AuthModalProps> = ({
           {mode === "signup" && (
             <p className="text-sm">
               Já tem conta?{" "}
-              <span
-                onClick={() => setMode("login")}
-                className="text-primary cursor-pointer hover:underline"
-              >
+              <span onClick={() => setMode("login")} className="text-primary cursor-pointer hover:underline">
                 Entrar
               </span>
             </p>
@@ -687,17 +623,13 @@ const AuthModal: React.FC<AuthModalProps> = ({
           {mode === "forgotpassword" && (
             <p className="text-sm mt-2">
               Lembrou a senha?{" "}
-              <span
-                onClick={() => setMode("login")}
-                className="text-primary cursor-pointer hover:underline"
-              >
+              <span onClick={() => setMode("login")} className="text-primary cursor-pointer hover:underline">
                 Entrar
               </span>
             </p>
           )}
         </div>
-
-        {/* Botões de login social */}
+  
         {(mode === "login" || mode === "signup") && (
           <div className="mt-6 flex items-center justify-center space-x-4">
             <button

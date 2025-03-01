@@ -5,10 +5,10 @@
 type User {
   id: Int!
   email: String!
-  password: String!
   name: String!
   phoneNumber: String!
   role: String!
+  emailVerified: Boolean!
   createdAt: DateTime!
   rating: Float
   portfolioImages: [String!]
@@ -27,14 +27,25 @@ type Image {
   updatedAt: DateTime!
 }
 
-type Portfolio {
+type Location {
   id: Int!
+  latitude: Float!
+  longitude: Float!
+  city: String!
+  state: String!
+  country: String!
   professionalId: Int!
-  serviceId: Int!
-  title: String!
-  description: String!
-  images: [String!]!
-  chatIds: [String!]
+  professional: Professional
+}
+
+type Review {
+  id: Int!
+  clientId: Int!
+  professionalId: Int!
+  professional: Professional
+  punctuality: Int!
+  quality: Int!
+  organization: Int!
   createdAt: DateTime!
   updatedAt: DateTime!
 }
@@ -57,6 +68,7 @@ type Need {
   description: String!
   clientId: Int!
   client: Client
+  professional: Professional
   professionalId: Int!
   chatId: String!
   createdAt: DateTime!
@@ -88,6 +100,7 @@ type Budget {
   client: Client
   need: Need
   professionalId: Int!
+  professional: Professional
   clientId: Int!
   amount: Float
   description: String
@@ -100,6 +113,35 @@ type Budget {
   createdAt: DateTime!
   updatedAt: DateTime!
   budgetServices: [BudgetService!]
+}
+
+type Professional {
+  id: Int!
+  user: User!
+  profileImage: String
+  skills: [Int!]!
+  portfolios: [Portfolio!]!
+  location: Location
+  availability: String
+  reviews: [Review!]!
+  rating: Float
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  budgets: [Budget]
+  chatIds: [String!]
+}
+
+type Portfolio {
+  id: Int!
+  professionalId: Int!
+  professional: Professional
+  serviceId: Int!
+  title: String!
+  description: String!
+  images: [String!]!
+  chatIds: [String!]
+  createdAt: DateTime!
+  updatedAt: DateTime!
 }
 
 type LoginResponse {
@@ -121,6 +163,7 @@ type Query {
   getChatList(userId: Int!): [String!]!
   getClientByUserId(id: Int!): String!
   needsByChatId(chatId: String!): [Need!]!
+  getProfessionalByUserId(id: Int!): Professional
   getSkillsByProfessionalId(id: Int!): [Int!]!
   getPortfolios(professionalId: Int!): [Portfolio!]!
   getRandomPortfolios: [Portfolio!]!
@@ -150,10 +193,13 @@ type Mutation {
   updateBudgetStatus(id: Int!, status: String!): Budget!
   deleteBudget(id: Int!): Budget!
   login(loginUserDto: LoginUserDto!): LoginResponse!
+  validateEmailVerificationCodeById(userId: Int!, code: String!): Boolean!
   register(registerUserDto: RegisterUserDto!): User!
   requestPasswordReset(email: String!, role: String!): Boolean!
   validateResetCode(email: String!, role: String!, code: String!): Boolean!
+  validateVerificationCode(userId: Float!, code: String!): Boolean!
   resetPassword(email: String!, role: String!, newPassword: String!): Boolean!
+  requestEmailVerification(userId: Int!): Boolean!
   createService(name: String!, icon: String!): Service!
   updateService(id: Int!, name: String, icon: String): Service!
   deleteService(id: Int!): Boolean!
@@ -222,6 +268,7 @@ input UpdateBudgetInput {
 }
 
 input LoginUserDto {
+  userId: Float
   email: String!
   password: String!
   role: String!

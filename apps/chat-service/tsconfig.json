@@ -13,14 +13,25 @@
     "allowSyntheticDefaultImports": true,
     "target": "ES2021",
     "sourceMap": true,
-    "incremental": true,
+    "incremental": false,
     "strictBindCallApply": true,
     "forceConsistentCasingInFileNames": true,
     "noFallthroughCasesInSwitch": true,
     "moduleResolution": "node",
+    "rootDir": "./src",
+    "outDir": "./dist",
     "baseUrl": "./src",
     "types": ["node"]
   },
-  "exclude": ["node_modules", "dist"],
-  "include": ["src/**/*", "src/types/**/*.d.ts", "server/**/*"]
+ "exclude": ["node_modules", "dist", "src/upload"],
+  "include": [
+    "middleware.ts",
+    "src/**/*",
+    "app/**/*",
+    "server/**/*",
+    "types/**/*",
+    "**/*.tsx",
+    "**/*.js",
+    "**/*.ts"
+]
 }

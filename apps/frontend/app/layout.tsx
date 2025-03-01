@@ -8,6 +8,7 @@ import { ServicesProvider } from "./components/ServicesContext";
 
 import { Metadata } from "next";
 import { UnitsProvider } from "./components/UnitsContext";
+import RouteChangeSpinner from "./components/RouteChangeSpinner";
 
 export const metadata: Metadata = {
   title: "Mercado de Obra",
@@ -39,6 +40,7 @@ export default function RootLayout({
             <ServicesProvider>
               <PageProvider>
                 <UnitsProvider>
+                  <RouteChangeSpinner />
                   <NavbarWithSearch />
                   <main className="my-4">{children}</main>
                   <Footer />

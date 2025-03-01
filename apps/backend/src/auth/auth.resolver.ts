@@ -1,4 +1,4 @@
-import { Resolver, Mutation, Args } from '@nestjs/graphql';
+import { Resolver, Mutation, Args, Int } from '@nestjs/graphql';
 import { AuthService } from './auth.service';
 import { LoginUserDto } from './dto/login-user.dto';
 import { RegisterUserDto } from './dto/register-user.dto';
@@ -10,8 +10,12 @@ export class AuthResolver {
   constructor(private readonly authService: AuthService) {}
 
   @Mutation(() => LoginResponse)
-  async login(@Args('loginUserDto') loginUserDto: LoginUserDto): Promise<LoginResponse> {
+  async login(
+    @Args('loginUserDto') loginUserDto: LoginUserDto,
+  ): Promise<LoginResponse> {
+    // Se o campo userId estiver presente, ele será utilizado
     const user = await this.authService.validateUser(
+      loginUserDto.userId,
       loginUserDto.email,
       loginUserDto.password,
       loginUserDto.role,
@@ -21,14 +25,22 @@ export class AuthResolver {
     }
     return this.authService.login(user);
   }
-  
+
+  @Mutation(() => Boolean)
+  async validateEmailVerificationCodeById(
+    @Args('userId', { type: () => Int }) userId: number,
+    @Args('code') code: string,
+  ): Promise<boolean> {
+    await this.authService.validateEmailVerificationCodeById(userId, code);
+    return true;
+  }
+
   @Mutation(() => User)
   async register(
-    @Args('registerUserDto') registerUserDto: RegisterUserDto
+    @Args('registerUserDto') registerUserDto: RegisterUserDto,
   ): Promise<Partial<User>> {
     return this.authService.register(registerUserDto);
   }
-  
 
   @Mutation(() => Boolean)
   async requestPasswordReset(
@@ -50,12 +62,29 @@ export class AuthResolver {
   }
 
   @Mutation(() => Boolean)
+  async validateVerificationCode(
+    @Args('userId') userId: number,
+    @Args('code') code: string,
+  ): Promise<boolean> {
+    await this.authService.validateEmailVerificationCodeById(userId, code);
+    return true;
+  }
+
+  @Mutation(() => Boolean)
   async resetPassword(
     @Args('email') email: string,
     @Args('role') role: 'CLIENT' | 'PROFESSIONAL',
     @Args('newPassword') newPassword: string,
   ): Promise<boolean> {
     await this.authService.resetPassword(email, role, newPassword);
+    return true;
+  }
+
+  @Mutation(() => Boolean)
+  async requestEmailVerification(
+    @Args('userId', { type: () => Int }) userId: number,
+  ): Promise<boolean> {
+    await this.authService.requestEmailVerification(userId);
     return true;
   }
 }

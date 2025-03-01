@@ -10,7 +10,7 @@ import { User as CurrentUserType } from '@prisma/client';
 
 @Resolver(() => User)
 export class UsersResolver {
-  constructor(private readonly usersService: UsersService) {}S
+  constructor(private readonly usersService: UsersService) {}
 
   @Query(() => User, { nullable: true })
   @UseGuards(GqlAuthGuard)

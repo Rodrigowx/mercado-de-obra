@@ -8,7 +8,7 @@ import {
   IsInt,
 } from 'class-validator';
 
-import * as GraphQLUpload from 'graphql-upload/GraphQLUpload.js';
+import { GraphQLUpload } from 'graphql-upload';
 import { FileUpload } from '../../../common/uploader/model/file-upload.model';
 
 @InputType()

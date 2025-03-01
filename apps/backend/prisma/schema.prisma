@@ -9,18 +9,20 @@ generator client {
 }
 
 model User {
-  id                Int                @id @default(autoincrement())
-  email             String
-  password          String
-  name              String
-  phoneNumber       String
-  role              String
-  professional      Professional?
-  client            Client?
-  passwordResetCode PasswordResetCode? @relation("UserPasswordResetCode")
-  createdAt         DateTime           @default(now())
-  updatedAt         DateTime           @updatedAt
-  chatIds           String[]           @default([])
+  id                    Int                    @id @default(autoincrement())
+  email                 String
+  password              String
+  name                  String
+  phoneNumber           String
+  role                  String
+  emailVerified         Boolean                @default(false)
+  professional          Professional?
+  client                Client?
+  passwordResetCode     PasswordResetCode?     @relation("UserPasswordResetCode")
+  emailVerificationCode EmailVerificationCode? @relation("EmailVerification")
+  createdAt             DateTime               @default(now())
+  updatedAt             DateTime               @updatedAt
+  chatIds               String[]               @default([])
 
   @@unique([email, role])
 }
@@ -114,6 +116,13 @@ model PasswordResetCode {
   validated Boolean  @default(false)
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now())
+}
+
+model EmailVerificationCode {
+  userId    Int      @id
+  code      String
+  expiresAt DateTime
+  user      User     @relation("EmailVerification", fields: [userId], references: [id])
 }
 
 model Review {

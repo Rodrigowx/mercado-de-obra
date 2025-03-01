@@ -1,4 +1,5 @@
 import { ObjectType, Field, Int } from '@nestjs/graphql';
+import { Professional } from '@professionall/models/Professional.model';
 
 @ObjectType()
 export class Review {
@@ -10,6 +11,9 @@ export class Review {
 
   @Field(() => Int)
   professionalId: number;
+
+  @Field(() => Professional, { nullable: true })
+  professional?: Professional;
 
   @Field(() => Int)
   punctuality: number;

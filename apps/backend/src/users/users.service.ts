@@ -1,4 +1,9 @@
-import { ConflictException, Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { Prisma, User } from '@prisma/client';
@@ -9,7 +14,7 @@ import { formatPhoneNumber } from '../utils/phone-number.util';
 export class UsersService {
   constructor(private prisma: PrismaService) {}
 
-  async updateChatList(userId: number, chatId: string) {
+  async updateChatList(userId: number, chatId: string): Promise<string[]> {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
       select: { chatIds: true },
@@ -17,21 +22,15 @@ export class UsersService {
     if (!user) {
       throw new NotFoundException('Profissional não encontrado.');
     }
-  
     const updatedChatIds = [...user.chatIds, chatId];
-  
     await this.prisma.user.update({
       where: { id: userId },
       data: { chatIds: updatedChatIds },
     });
-  
     return updatedChatIds;
   }
-  
-  /**
-   * Busca a lista de chats de um profissional.
-   */
-  async getChatList(userId: number) {
+
+  async getChatList(userId: number): Promise<string[]> {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
       select: { chatIds: true },
@@ -43,31 +42,37 @@ export class UsersService {
   }
 
   async create(data: CreateUserDto): Promise<User> {
-    const { phoneNumber, role, ...rest } = data;
+    // Extraímos o email explicitamente para normalizá-lo
+    const { phoneNumber, role, email, ...rest } = data;
+    const normalizedEmail = email.toLowerCase().trim();
     const formattedPhoneNumber = formatPhoneNumber(phoneNumber);
-
     try {
       const user = await this.prisma.user.create({
         data: {
           ...rest,
+          email: normalizedEmail,
           phoneNumber: formattedPhoneNumber,
           role,
         },
       });
-
       if (role === 'PROFESSIONAL') {
         await this.prisma.professional.create({ data: { id: user.id } });
       } else if (role === 'CLIENT') {
         await this.prisma.client.create({ data: { id: user.id } });
       }
-
       return user;
     } catch (error) {
       if (error instanceof Prisma.PrismaClientKnownRequestError) {
         if (error.code === 'P2002') {
           const target = error.meta?.target;
-          if (Array.isArray(target) && target.includes('email') && target.includes('role')) {
-            throw new ConflictException('Já existe um usuário com este email e este tipo de conta (role).');
+          if (
+            Array.isArray(target) &&
+            target.includes('email') &&
+            target.includes('role')
+          ) {
+            throw new ConflictException(
+              'Já existe um usuário com este email e este tipo de conta (role).',
+            );
           }
         }
       }
@@ -79,27 +84,28 @@ export class UsersService {
     return this.prisma.user.findFirst({ where: { email } });
   }
 
-  async findOneByEmailAndRole(email: string, role: string): Promise<User | null> {
+  async findOneByEmailAndRole(
+    email: string,
+    role: 'CLIENT' | 'PROFESSIONAL',
+  ): Promise<User | null> {
     return this.prisma.user.findUnique({
       where: {
         email_role: {
-          email,
+          email: email.toLowerCase(),
           role,
         },
       },
     });
   }
 
-  async findOneById(id: number): Promise<User | null> {
+  async findOneById(id: number): Promise<User> {
     if (!id) {
       throw new BadRequestException('ID inválido ou não fornecido.');
     }
-
     const user = await this.prisma.user.findUnique({ where: { id } });
     if (!user) {
       throw new NotFoundException('Usuário não encontrado');
     }
-
     return user;
   }
 
@@ -108,19 +114,19 @@ export class UsersService {
   }
 
   async delete(id: number): Promise<boolean> {
-    // Verifica se o usuário existe
     const user = await this.prisma.user.findUnique({ where: { id } });
     if (!user) {
       throw new NotFoundException('Usuário não encontrado');
     }
-  
-    // Deleta o usuário
     await this.prisma.user.delete({ where: { id } });
-  
     return true;
   }
 
-  async savePasswordResetCode(userId: number, code: string, expiresAt: Date): Promise<void> {
+  async savePasswordResetCode(
+    userId: number,
+    code: string,
+    expiresAt: Date,
+  ): Promise<void> {
     await this.prisma.passwordResetCode.upsert({
       where: { userId },
       update: { code, expiresAt, validated: false },
@@ -128,49 +134,83 @@ export class UsersService {
     });
   }
 
-  async findPasswordResetCode(userId: number): Promise<{ code: string; expiresAt: Date; validated: boolean } | null> {
-    const record = await this.prisma.passwordResetCode.findUnique({ where: { userId } });
-    return record ? { code: record.code, expiresAt: record.expiresAt, validated: record.validated } : null;
+  async findPasswordResetCode(
+    userId: number,
+  ): Promise<{ code: string; expiresAt: Date; validated: boolean } | null> {
+    const record = await this.prisma.passwordResetCode.findUnique({
+      where: { userId },
+    });
+    return record
+      ? {
+          code: record.code,
+          expiresAt: record.expiresAt,
+          validated: record.validated,
+        }
+      : null;
   }
 
-async markCodeAsValidated(userId: number): Promise<void> {
-  await this.prisma.passwordResetCode.update({
-    where: { userId },
-    data: { validated: true },
-  });
-}
+  async markCodeAsValidated(userId: number): Promise<void> {
+    await this.prisma.passwordResetCode.update({
+      where: { userId },
+      data: { validated: true },
+    });
+  }
 
-async isCodeValidated(userId: number): Promise<boolean> {
-  const record = await this.prisma.passwordResetCode.findUnique({ where: { userId } });
-  return record?.validated === true;
-}
+  async isCodeValidated(userId: number): Promise<boolean> {
+    const record = await this.prisma.passwordResetCode.findUnique({
+      where: { userId },
+    });
+    return record?.validated === true;
+  }
 
-async deletePasswordResetCode(userId: number): Promise<void> {
-  await this.prisma.passwordResetCode.delete({ where: { userId } });
-}
+  async deletePasswordResetCode(userId: number): Promise<void> {
+    await this.prisma.passwordResetCode.delete({ where: { userId } });
+  }
 
   async updatePassword(id: number, newPassword: string): Promise<void> {
     await this.prisma.user.update({
-      where: { id: id },
+      where: { id },
       data: { password: newPassword },
     });
   }
 
-  // Implementação do getTopProfessionals()
   async getTopProfessionals(): Promise<User[]> {
     return this.prisma.user.findMany({
       where: { role: 'PROFESSIONAL' },
-      // Se rating e portfolioImages existirem no schema do Prisma, selecione:
-      // select: {
-      //   id: true,
-      //   name: true,
-      //   role: true,
-      //   rating: true,
-      //   portfolioImages: true,
-      //   // ...
-      // },
-      // or "include" if tem relação
       take: 10,
+    });
+  }
+
+  // Funções de Email Verification Code
+  async saveEmailVerificationCode(userId: number, code: string): Promise<void> {
+    const expiresAt = new Date(Date.now() + 3600 * 1000);
+    await this.prisma.emailVerificationCode.create({
+      data: {
+        userId,
+        code,
+        expiresAt,
+      },
+    });
+  }
+
+  async findEmailVerificationCode(
+    userId: number,
+  ): Promise<{ code: string; expiresAt: Date } | null> {
+    return this.prisma.emailVerificationCode.findUnique({
+      where: { userId },
+    });
+  }
+
+  async markEmailAsVerified(userId: number): Promise<void> {
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: { emailVerified: true },
+    });
+  }
+
+  async deleteEmailVerificationCode(userId: number): Promise<void> {
+    await this.prisma.emailVerificationCode.deleteMany({
+      where: { userId },
     });
   }
 }

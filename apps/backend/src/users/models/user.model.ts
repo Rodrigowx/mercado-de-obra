@@ -9,9 +9,6 @@ export class User {
   email: string;
 
   @Field()
-  password: string;
-
-  @Field()
   name: string;
 
   @Field()
@@ -19,6 +16,9 @@ export class User {
 
   @Field()
   role: string;
+
+  @Field()
+  emailVerified: boolean;
 
   @Field()
   createdAt: Date;

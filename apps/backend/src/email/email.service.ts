@@ -10,9 +10,12 @@ export class EmailService {
     this.provider = new AzureEmailProvider(this.configService);
   }
 
-  async sendWelcomeEmail(to: string, name: string): Promise<void> {
-    const subject = 'Bem-vindo ao Mercado de Obra!';
-    const text = `Olá ${name}, seja bem-vindo ao Mercado de Obra!`;
+  async sendEmailVerificationCodeEmail(
+    to: string,
+    code: string,
+  ): Promise<void> {
+    const subject = 'Bem-vindo ao Mercado de Obra! | Verificação de Email ';
+    const text = `Seu código de verificação é: ${code}`;
     await this.provider.sendEmail(to, subject, text);
   }
 

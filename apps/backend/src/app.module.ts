@@ -12,7 +12,7 @@ import { ProfessionalModule } from './professional/professional.module';
 import { AppService } from './app.service';
 import { SmsService } from './sms/sms.service';
 import { EmailService } from './email/email.service';
-import * as GraphQLUpload from 'graphql-upload/GraphQLUpload.js';
+import { GraphQLUpload } from 'graphql-upload';
 import { PortfolioModule } from './professional/portfolio/portfolio.module';
 import { ClientModule } from './client/client.module';
 

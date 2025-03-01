@@ -1,4 +1,5 @@
 import { ObjectType, Field, Int } from '@nestjs/graphql';
+import { Professional } from '@professionall/models/Professional.model';
 
 @ObjectType()
 export class Location {
@@ -22,4 +23,7 @@ export class Location {
 
   @Field(() => Int)
   professionalId: number;
+
+  @Field(() => Professional, { nullable: true })
+  professional?: Professional;
 }
