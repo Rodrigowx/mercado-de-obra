@@ -1,0 +1,48 @@
+name: Trigger auto deployment for chat-mercado-de-obra-docker
+
+# When this action will be executed
+on:
+  # Automatically trigger it when detected changes in repo
+  push:
+    branches: 
+      [ master ]
+    paths:
+    - '**'
+    - '.github/workflows/chat-mercado-de-obra-docker-AutoDeployTrigger-638d4d9a-3b5a-4335-8421-78c8935d88ab.yml'
+
+  # Allow manual trigger 
+  workflow_dispatch:      
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    permissions: 
+      id-token: write #This is required for requesting the OIDC JWT Token
+      contents: read #Required when GH token is used to authenticate with private repo
+
+    steps:
+      - name: Checkout to the branch
+        uses: actions/checkout@v2
+
+      - name: Azure Login
+        uses: azure/login@v1
+        with:
+          client-id: ${{ secrets.CHATMERCADODEOBRADOCKER_AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.CHATMERCADODEOBRADOCKER_AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.CHATMERCADODEOBRADOCKER_AZURE_SUBSCRIPTION_ID }}
+
+      - name: Build and push container image to registry
+        uses: azure/container-apps-deploy-action@v2
+        with:
+          appSourcePath: ${{ github.workspace }}apps/chat-service
+          _dockerfilePathKey_: _dockerfilePath_
+          registryUrl: docker.io
+          registryUsername: ${{ secrets.CHATMERCADODEOBRADOCKER_REGISTRY_USERNAME }}
+          registryPassword: ${{ secrets.CHATMERCADODEOBRADOCKER_REGISTRY_PASSWORD }}
+          containerAppName: chat-mercado-de-obra-docker
+          resourceGroup: mercado-de-obra
+          imageToBuild: rodrigowx/chat-mercado-de-obra-docker:${{ github.sha }}
+          _buildArgumentsKey_: |
+            _buildArgumentsValues_
+
+
