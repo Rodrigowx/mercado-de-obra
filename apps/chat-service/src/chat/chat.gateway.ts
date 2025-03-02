@@ -41,18 +41,16 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       this.logger.log(
         `Usuário ${userId} já conectado com o socket ${existingSocket.id}. Nova conexão ${socket.id} ignorada.`,
       );
-      // Opcional: pode enviar uma notificação para o socket recém-conectado informando que já está conectado
       socket.emit('alreadyConnected', { message: 'Você já está conectado.' });
       return;
     }
 
-    // Registra a nova conexão
     this.activeUsers.set(userId, socket);
     this.logger.log(`Usuário ${userId} conectado com o socket ${socket.id}`);
   }
 
   handleDisconnect(socket: Socket) {
-    // Procura e remove a conexão correspondente ao socket desconectado
+    // Remove a conexão correspondente ao socket desconectado
     for (const [userId, activeSocket] of this.activeUsers.entries()) {
       if (activeSocket.id === socket.id) {
         this.activeUsers.delete(userId);
@@ -67,7 +65,6 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     @MessageBody() data: { conversationId: string; userId: number },
     @ConnectedSocket() client: Socket,
   ) {
-    // Envia para todos na conversa exceto o próprio usuário
     client.to(`conversation_${data.conversationId}`).emit('typingStart', {
       userId: data.userId,
       conversationId: data.conversationId,
@@ -103,15 +100,13 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       data.attachments,
     );
 
-    // Emitir mensagem para a sala da conversa
+    // Emite a mensagem para a sala da conversa
     this.server
       .in(`conversation_${data.conversationId}`)
       .emit('messageReceived', message);
 
-    // Atualizar notificações para o destinatário
-    const conversation = await this.chatService.getConversation(
-      data.conversationId,
-    );
+    // Descobre o recipient
+    const conversation = await this.chatService.getConversation(data.conversationId);
     const recipientId =
       message.senderId === conversation.clientId
         ? conversation.professionalId
@@ -122,14 +117,23 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       recipientId,
     );
 
-    // Emitir atualização apenas para o destinatário
+    // Emite atualização de notificações p/ destinatário
     this.server
       .to(`notification_${recipientId}`)
       .emit('notifications', { [data.conversationId]: unreadCount });
-    this.server.to(`notification_${recipientId}`).emit('newClientConversation');
-    this.server
-      .to(`conversation_${data.conversationId}`)
-      .emit('newClientConversation');
+
+    // Emite newClientConversation COM dados (seu front espera { conversationId, message, unreadCount })
+    const payload = {
+      conversationId: data.conversationId,
+      message,
+      unreadCount,
+    };
+
+    // Para o recipient
+    this.server.to(`notification_${recipientId}`).emit('newClientConversation', payload);
+
+    // Opcional: notificar a sala da conversa também
+    // this.server.in(`conversation_${data.conversationId}`).emit('newClientConversation', payload);
 
     return message;
   }
@@ -139,10 +143,8 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     @MessageBody() data: { conversationId: string; userId: number },
     @ConnectedSocket() client: Socket,
   ) {
-    // 1. Marca as mensagens como lidas
     await this.chatService.markMessagesAsRead(data.conversationId, data.userId);
 
-    // 2. Atualiza a UI para todos na conversa (mantendo sua funcionalidade original)
     this.server
       .in(`conversation_${data.conversationId}`)
       .emit('messagesMarkedAsRead', {
@@ -150,7 +152,6 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
         userId: data.userId,
       });
 
-    // 3. Atualiza as notificações apenas para o usuário específico (nova funcionalidade)
     const updatedCount = await this.chatService.getUnreadMessageCount(
       data.conversationId,
       data.userId,
@@ -168,61 +169,44 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     @MessageBody() data: { conversationId: string; userId: number },
     @ConnectedSocket() client: Socket,
   ) {
-    // Verifica se o conversationId é válido
     if (!data.conversationId || data.conversationId.trim() === '') {
       client.emit('error', { message: 'Invalid conversation ID' });
-      return; // Retorna sem fazer nada se o conversationId for inválido
+      return;
     }
 
-    try {
-      // Conecta o usuário à sala da conversa
-      client.join(`conversation_${data.conversationId}`);
-      this.logger.log(
-        `conversation_ connected: ${data.userId}, ${data.conversationId}`,
-      );
+    client.join(`conversation_${data.conversationId}`);
+    this.logger.log(`conversation_ connected: ${data.userId}, ${data.conversationId}`);
 
-      // Marca todas as mensagens como lidas quando o usuário entra na conversa
-      await this.chatService.markMessagesAsRead(
-        data.conversationId,
-        data.userId,
-      );
+    // Marca como lidas
+    await this.chatService.markMessagesAsRead(data.conversationId, data.userId);
 
-      // Buscar mensagens recentes
-      const recentMessages = await this.chatService.getRecentMessages(
-        data.conversationId,
-      );
-      client.emit('recentMessages', recentMessages);
+    // Envia mensagens recentes
+    const recentMessages = await this.chatService.getRecentMessages(data.conversationId);
+    client.emit('recentMessages', recentMessages);
 
-      // Atualiza as notificações do usuário
-      const unreadCount = await this.chatService.getUnreadMessageCount(
-        data.conversationId,
-        data.userId,
-      );
-      this.server
-        .to(`notification_${data.userId}`)
-        .emit('notifications', { [data.conversationId]: unreadCount });
+    // Atualiza notificações p/ esse user
+    const unreadCount = await this.chatService.getUnreadMessageCount(
+      data.conversationId,
+      data.userId,
+    );
+    this.server
+      .to(`notification_${data.userId}`)
+      .emit('notifications', { [data.conversationId]: unreadCount });
 
-      return { joined: true };
-    } catch (error) {
-      // Caso ocorra qualquer erro, logue e emita um erro para o cliente sem quebrar o servidor
-      this.logger.error(`Error joining conversation: ${error.message}`);
-    }
+    return { joined: true };
   }
 
   @SubscribeMessage('joinNotification')
   async handleJoinNotification(
-    @MessageBody() data: { conversationIds: string[] | null; userId: number },
+    @MessageBody() data: { conversationIds: string[]; userId: number },
     @ConnectedSocket() client: Socket,
   ) {
     const notifications = {};
 
-    // Conectar o cliente à sala de notifications
     client.join(`notification_${data.userId}`);
-
     this.logger.log(`notification connected: ${data.userId}`);
 
-    // Se não houver conversationIds, ainda assim, garantir que o cliente entrou na sala
-    if (data.conversationIds.length > 0) {
+    if (data.conversationIds?.length > 0) {
       for (const conversationId of data.conversationIds) {
         client.join(`conversation_${conversationId}`);
         const messageCount = await this.chatService.getUnreadMessageCount(
@@ -232,11 +216,9 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
         notifications[conversationId] = messageCount;
       }
     } else {
-      // Se não houver conversationsIds, envie uma resposta de notificação vazia
       notifications['no_conversations'] = 0;
     }
 
-    // Enviar as notificações
     client.emit('notifications', notifications);
     return { joined: true };
   }

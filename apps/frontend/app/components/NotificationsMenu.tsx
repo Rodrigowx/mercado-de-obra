@@ -5,10 +5,8 @@ import { useRouter } from "next/navigation";
 import { AuthContext } from "@/app/components/AuthContext";
 import { IoIosNotifications, IoMdChatboxes } from "react-icons/io";
 import { usePageContext } from "./PageContext";
-import {
-  getUserConversations,
-  getLastMessage,
-} from "@/app/services/chatService";
+import { getUserConversations, getLastMessage } from "@/app/services/chatService";
+
 import {
   isSocketReady,
   onMessageReceived,
@@ -18,16 +16,8 @@ import {
   getSocket,
   connectSocket,
   onNewClientConversation,
+  Message
 } from "../services/socketServices";
-
-interface LastMessage {
-  id: string;
-  senderId: number;
-  content: string;
-  conversationId: string;
-  senderName: string;
-  createdAt: string;
-}
 
 interface NotificationMessage {
   [conversationId: string]: number;
@@ -41,7 +31,7 @@ const NotificationsMenu: React.FC = () => {
   const [activeTab, setActiveTab] = useState<"chats" | "alerts">("chats");
   const [isOpen, setIsOpen] = useState(false);
   const [conversationIds, setConversationIds] = useState<string[]>([]);
-  const [lastMessages, setLastMessages] = useState<LastMessage[]>([]);
+  const [lastMessages, setLastMessages] = useState<Message[]>([]);
   const [unreadMessages, setUnreadMessages] = useState<NotificationMessage>({});
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -66,7 +56,7 @@ const NotificationsMenu: React.FC = () => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const fetchConversationList = async (userId: number) => {
+  async function fetchConversationList(userId: number) {
     try {
       setLoading(true);
       const data = await getUserConversations(userId);
@@ -76,12 +66,12 @@ const NotificationsMenu: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }
 
-  const fetchLastMessages = async (conversations: string[]) => {
+  async function fetchLastMessages(conversations: string[]) {
     try {
       setLoading(true);
-      const messages: LastMessage[] = [];
+      const messages: Message[] = [];
       for (const cId of conversations) {
         const lastMsg = await getLastMessage(cId);
         if (lastMsg) messages.push(lastMsg);
@@ -92,8 +82,9 @@ const NotificationsMenu: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }
 
+  // Exemplo: lógica com "wasZeroBefore" e "isNonZeroNow"
   useEffect(() => {
     if (!isAuthenticated || !user?.id) return;
 
@@ -108,6 +99,7 @@ const NotificationsMenu: React.FC = () => {
     prevUnreadRef.current = totalUnread;
   }, [totalUnread, conversationIds, user?.id, isAuthenticated]);
 
+  // Efeito: escuta "notifications" e "newClientConversation" no socket
   useEffect(() => {
     const handleNewNotification = (newNotifications: NotificationMessage) => {
       setUnreadMessages((prev) => ({ ...prev, ...newNotifications }));
@@ -115,7 +107,7 @@ const NotificationsMenu: React.FC = () => {
 
     const handleNewConversation = (data: {
       conversationId: string;
-      message: LastMessage;
+      message: Message;
       unreadCount: number;
     }) => {
       setConversationIds((prev) => [...prev, data.conversationId]);
@@ -141,6 +133,7 @@ const NotificationsMenu: React.FC = () => {
     };
   }, [isAuthenticated]);
 
+  // Efeito: ao logar, conectar socket + fetch conversas
   useEffect(() => {
     if (isAuthenticated) {
       connectSocket(Number(user?.id));
@@ -148,6 +141,7 @@ const NotificationsMenu: React.FC = () => {
     }
 
     const handleNewClientConversation = () => {
+      // re-fetch se quiser
       fetchConversationList(Number(user?.id));
     };
 
@@ -157,11 +151,13 @@ const NotificationsMenu: React.FC = () => {
 
     return () => {
       if (isSocketReady()) {
-        offMessageReceived(handleNewClientConversation);
+        offMessageReceived(handleNewClientConversation as any); 
+        // "as any" pois handleNewClientConversation não recebe param
       }
     };
   }, [user, isAuthenticated]);
 
+  // Efeito: joinNotification + fetchLastMessages sempre que conversationIds mudar
   useEffect(() => {
     const handleNewNotification = (newNotifications: NotificationMessage) => {
       setUnreadMessages((prev) => ({
@@ -186,10 +182,11 @@ const NotificationsMenu: React.FC = () => {
     };
   }, [conversationIds, isAuthenticated]);
 
+  // Efeito: escutar "messageReceived"
   useEffect(() => {
     if (!isAuthenticated || !conversationIds) return;
 
-    const handleNewMessage = (newMsg: LastMessage) => {
+    const handleNewMessage = (newMsg: Message) => {
       if (isChatPage && chatId === newMsg.conversationId) {
         fetchLastMessages(conversationIds);
         return;
@@ -208,14 +205,14 @@ const NotificationsMenu: React.FC = () => {
     return () => offMessageReceived(handleNewMessage);
   }, [isAuthenticated, conversationIds, isChatPage, chatId]);
 
-  const handleClickConversation = (conversationId: string) => {
+  function handleClickConversation(conversationId: string) {
     router.push(`/dashboard/chat/${conversationId}`);
     setIsOpen(false);
     setUnreadMessages((prev) => ({
       ...prev,
       [conversationId]: 0,
     }));
-  };
+  }
 
   return (
     <div className="relative" ref={menuRef}>
@@ -270,16 +267,14 @@ const NotificationsMenu: React.FC = () => {
                 return (
                   <div
                     key={message.id}
-                    onClick={() =>
-                      handleClickConversation(message.conversationId)
-                    }
+                    onClick={() => handleClickConversation(message.conversationId)}
                     className="p-2 hover:bg-gray-100 dark:hover:bg-zinc-600 cursor-pointer rounded-md mb-1 relative"
                   >
                     <p className="text-sm text-gray-700 dark:text-white">
                       <strong>
-                        {message?.senderId === Number(user?.id)
+                        {message.senderId === Number(user?.id)
                           ? " Você: "
-                          : `${message.senderName?.split(" ")[0]}: `}
+                          : `${message.senderName.split(" ")[0]}: `}
                       </strong>
                       {message.content}
                     </p>
