@@ -28,9 +28,14 @@ interface Message {
  * Conecta o socket passando o userId via query para o handshake.
  */
 export function connectSocket(userId: number) {
-  socket = io(process.env.NEXT_PUBLIC_CHAT_URI || "http://localhost:4000", {
-    query: { userId: userId.toString() },
-  });
+  socket = io(
+    process.env.NEXT_PUBLIC_CHAT_URI
+      ? `${process.env.NEXT_PUBLIC_CHAT_URI}:4000`
+      : "http://localhost:4000",
+    {
+      query: { userId: userId.toString() },
+    }
+  );
 
   socket.on("connect", () => {
     console.log("Socket conectado:", socket?.id);
