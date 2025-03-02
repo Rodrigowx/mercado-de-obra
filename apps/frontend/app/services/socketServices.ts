@@ -34,6 +34,8 @@ export function connectSocket(userId: number) {
       : "http://localhost:4000",
     {
       query: { userId: userId.toString() },
+      transports: ["websocket", "polling"],
+      path: "/socket.io/", 
     }
   );
 
