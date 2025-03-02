@@ -1,11 +1,14 @@
 datasource db {
   provider     = "postgresql"
   url          = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
   relationMode = "prisma"
+  schemas  = ["mercado_de_obra"]
 }
 
 generator client {
   provider = "prisma-client-js"
+  previewFeatures = ["multiSchema"]
 }
 
 model User {
@@ -25,6 +28,8 @@ model User {
   chatIds               String[]               @default([])
 
   @@unique([email, role])
+  @@schema ("mercado_de_obra")
+
 }
 
 model Professional {
@@ -44,6 +49,7 @@ model Professional {
   Need    Need[]
 
   @@index([id])
+  @@schema ("mercado_de_obra")
 }
 
 model Client {
@@ -56,6 +62,7 @@ model Client {
   budgets   Budget[]
 
   @@index([id])
+  @@schema ("mercado_de_obra")
 }
 
 model Service {
@@ -64,6 +71,7 @@ model Service {
   icon            String
   professionalIds Int[]           @default([])
   BudgetService   BudgetService[]
+  @@schema ("mercado_de_obra")
 }
 
 model Portfolio {
@@ -79,6 +87,7 @@ model Portfolio {
 
   @@index([professionalId])
   @@index([serviceId])
+  @@schema ("mercado_de_obra")
 }
 
 model Image {
@@ -90,6 +99,7 @@ model Image {
   updatedAt   DateTime  @updatedAt
 
   @@index([portfolioId])
+  @@schema ("mercado_de_obra")
 }
 
 model Location {
@@ -105,6 +115,7 @@ model Location {
   updatedAt      DateTime      @default(now())
 
   @@index([professionalId])
+  @@schema ("mercado_de_obra")
 }
 
 model PasswordResetCode {
@@ -116,6 +127,7 @@ model PasswordResetCode {
   validated Boolean  @default(false)
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now())
+  @@schema ("mercado_de_obra")
 }
 
 model EmailVerificationCode {
@@ -123,6 +135,7 @@ model EmailVerificationCode {
   code      String
   expiresAt DateTime
   user      User     @relation("EmailVerification", fields: [userId], references: [id])
+  @@schema ("mercado_de_obra")
 }
 
 model Review {
@@ -139,6 +152,7 @@ model Review {
 
   @@index([clientId])
   @@index([professionalId])
+  @@schema ("mercado_de_obra")
 }
 
 model Budget {
@@ -164,6 +178,7 @@ model Budget {
   @@index([needId])
   @@index([clientId])
   @@index([professionalId])
+  @@schema ("mercado_de_obra")
 }
 
 model Need {
@@ -185,6 +200,7 @@ model Need {
   @@index([professionalId])
   @@index([serviceId])
   @@index([budgetId])
+  @@schema ("mercado_de_obra")
 }
 
 model UnitOfMeasurement {
@@ -192,6 +208,7 @@ model UnitOfMeasurement {
   code           String          @unique
   description    String
   budgetServices BudgetService[]
+  @@schema ("mercado_de_obra")
 }
 
 model BudgetService {
@@ -211,4 +228,5 @@ model BudgetService {
   @@index([budgetId])
   @@index([unitOfMeasurementId])
   @@index([serviceId])
+  @@schema ("mercado_de_obra")
 }

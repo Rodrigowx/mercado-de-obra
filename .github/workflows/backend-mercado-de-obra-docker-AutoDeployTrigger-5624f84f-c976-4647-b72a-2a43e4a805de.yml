@@ -51,6 +51,7 @@ jobs:
             AZURE_COMMUNICATION_EMAIL_CONNECTION_STRING=${{ secrets.AZURE_COMMUNICATION_EMAIL_CONNECTION_STRING }}
             AZURE_COMMUNICATION_EMAIL_SENDER=${{ secrets.AZURE_COMMUNICATION_EMAIL_SENDER }}
             DATABASE_URL=${{ secrets.DATABASE_URL }}
+            DIRECT_URL=${{ secrets.DIRECT_URL }}
             FRONTEND_URL=${{ secrets.FRONTEND_URL }}
       # 🚀 Deploy no Azure Container Apps
       - name: Deploy to Azure Container Apps
