@@ -8,11 +8,11 @@ on:
         description: "Branch para deploy"
         required: true
         default: "master"
-        
+
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
-    permissions: 
+    permissions:
       id-token: write #This is required for requesting the OIDC JWT Token
       contents: read #Required when GH token is used to authenticate with private repo
 
@@ -45,6 +45,12 @@ jobs:
           build-args: |
             DATABASE_URL_MONGO=${{ secrets.DATABASE_URL_MONGO }}
             FRONTEND_URL=${{ secrets.FRONTEND_URL }}
+
+      - name: Run Prisma DB Push for Mongo
+        working-directory: apps/chat-service
+        run: npx prisma db push
+        env:
+          DATABASE_URL_MONGO: ${{ secrets.DATABASE_URL_MONGO }}
 
       - name: Deploy to Azure Container Apps
         uses: azure/container-apps-deploy-action@v2

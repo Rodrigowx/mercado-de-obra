@@ -1,7 +1,4 @@
 {
-  "prisma": {
-    "seed": "node dist/prisma/seed.js"
-  },
   "name": "backend",
   "version": "0.0.1",
   "description": "",

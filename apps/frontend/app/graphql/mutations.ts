@@ -26,7 +26,6 @@ export const CREATE_BUDGET = gql`
       description
       status
       amount
-      laborCost
       materialList
       materialCost
       totalCost

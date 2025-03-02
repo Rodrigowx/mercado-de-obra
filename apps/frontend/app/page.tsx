@@ -30,16 +30,16 @@ export default function Page() {
   );
 
   return (
-    <div className="flex flex-col justify-center items-center ">
+    <div className="container mx-auto ">
     
       {!loggedIn && (
-        <section className="container mx-auto">
-          <h2 className="text-2xl font-bold text-gray-800 dark:text-tertiary">
+        <section className="flex flex-col justify-center items-center">
+          <h2 className="text-xl font-bold text-gray-800 md:text-2xl dark:text-tertiary">
             Serviços em Destaque
           </h2>
-          <div className="mt-2 grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-10">
+          <div className="mt-2 grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-2 md:gap-8">
             {loadingServ || !servicesData?.length ? (
-              <SkeletonLoader className="w-[19rem] h-[18rem]" count={15} />
+              <SkeletonLoader className="w-[12rem] h-[12rem]" count={9} />
             ) : (
               servicesData.topServices.map((service: any) => (
                 <PortfolioCard
@@ -61,9 +61,9 @@ export default function Page() {
           <h2 className="text-2xl font-bold text-gray-800 dark:text-tertiary">
             Serviços em Destaque
           </h2>
-          <div className="mt-3 grid grid-cols-6 gap-8">
+          <div className="mt-3 grid grid-cols-1 gap-2 md:grid-cols-3 lg:grid-cols-6">
             {loadingPort || !portfoliosData?.getRandomPortfolios?.length ? (
-              <SkeletonLoader className="w-[19rem] h-[18rem]" count={15} />
+              <SkeletonLoader className="w-[19rem] h-[18rem]" count={9} />
             ) : (
               portfoliosData?.getRandomPortfolios.map((portfolio: any) => (
                 <PortfolioCard

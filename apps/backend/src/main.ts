@@ -24,8 +24,8 @@ async function bootstrap() {
   // ✅ Ativar validação global para proteger a API
   app.useGlobalPipes(
     new ValidationPipe({
-      whitelist: true, // Remove campos não esperados na requisição
-      forbidNonWhitelisted: true, // Retorna erro se um campo não esperado for enviado
+      whitelist: false, 
+    forbidNonWhitelisted: false,
       transform: true, // Converte tipos automaticamente
     }),
   );

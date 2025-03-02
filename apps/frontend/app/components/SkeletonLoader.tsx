@@ -1,21 +1,23 @@
-import React from "react";
+import React from "react"
+import { Skeleton } from "@/components/ui/skeleton"
 
 interface SkeletonLoaderProps {
-  className?: string;
-  count?: number;
+  className?: string
+  count?: number
 }
 
-const SkeletonLoader: React.FC<SkeletonLoaderProps> = ({ className = "", count = 1 }) => {
+export default function SkeletonLoader({
+  className = "",
+  count = 1,
+}: SkeletonLoaderProps) {
   return (
     <>
-      {Array.from({ length: count }).map((_, index) => (
-        <div
-          key={index}
-          className={`animate-pulse bg-gray-300 dark:bg-gray-700 mt-4 rounded-md ${className}`}
-        ></div>
+      {Array.from({ length: count }).map((_, i) => (
+        <Skeleton
+          key={i}
+          className={`mt-4 rounded-md ${className}`}
+        />
       ))}
     </>
-  );
-};
-
-export default SkeletonLoader;
+  )
+}

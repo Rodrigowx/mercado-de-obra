@@ -9,6 +9,18 @@ export class UpdateBudgetInput {
   @Field(() => Float)
   totalCost?: number;
 
+  @Field(() => String)
+  status?: string;
+
+  @Field(() => String)
+  plannedStartDate?: string;
+
+  @Field(() => String)
+  plannedEndDate?: string;
+
+  @Field(() => Int)
+  recommendedInstallments?: number;
+
   // Se quiser atualizar/inserir BudgetServices:
   @Field(() => [CreateBudgetServiceInput])
   budgetServices?: CreateBudgetServiceInput[];

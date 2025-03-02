@@ -59,4 +59,3 @@ RUN echo "========== VARIÁVEIS DE AMBIENTE CONFIGURADAS ==========" && env
 
 # 8️⃣ Comando final para rodar a aplicação
 CMD ["node", "dist/main.js"]
-

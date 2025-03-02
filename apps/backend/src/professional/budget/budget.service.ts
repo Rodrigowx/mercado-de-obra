@@ -9,18 +9,20 @@ export class BudgetService {
   constructor(private prisma: PrismaService) {}
 
   async createBudget(input: CreateBudgetInput) {
-    const { needId, clientId, professionalId, budgetServices, ...data } = input;
+    const { needId, clientId, professionalId, budgetServices, description, totalCost } = input;
     return this.prisma.budget.create({
       data: {
         needId,
         clientId,
         professionalId,
-        ...data,
+        description,
+        totalCost,
         ...(budgetServices && {
           budgetServices: {
             create: budgetServices.map((bs) => ({
               unitOfMeasurementId: bs.unitOfMeasurementId,
               task: bs.task,
+              serviceValue: bs.serviceValue,
               quantity: bs.quantity,
             })),
           },

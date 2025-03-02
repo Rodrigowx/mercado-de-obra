@@ -35,28 +35,31 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       return;
     }
 
-    // Se já existir uma conexão para este usuário, desconecta a anterior
+    // Se já existir uma conexão ativa para esse usuário, não faz nada
     if (this.activeUsers.has(userId)) {
       const existingSocket = this.activeUsers.get(userId);
       this.logger.log(
-        `Usuário ${userId} já conectado. Desconectando socket antigo: ${existingSocket.id}`,
+        `Usuário ${userId} já conectado com o socket ${existingSocket.id}. Nova conexão ${socket.id} ignorada.`,
       );
-      existingSocket.disconnect();
+      // Opcional: pode enviar uma notificação para o socket recém-conectado informando que já está conectado
+      socket.emit('alreadyConnected', { message: 'Você já está conectado.' });
+      return;
     }
 
-    // Adiciona o novo socket no mapa
+    // Registra a nova conexão
     this.activeUsers.set(userId, socket);
-    this.logger.log(`Socket conectado: ${socket.id} para o usuário: ${userId}`);
+    this.logger.log(`Usuário ${userId} conectado com o socket ${socket.id}`);
   }
 
   handleDisconnect(socket: Socket) {
-    const userId = Number(socket.handshake.query.userId);
-    if (this.activeUsers.get(userId)?.id === socket.id) {
-      this.activeUsers.delete(userId);
+    // Procura e remove a conexão correspondente ao socket desconectado
+    for (const [userId, activeSocket] of this.activeUsers.entries()) {
+      if (activeSocket.id === socket.id) {
+        this.activeUsers.delete(userId);
+        this.logger.log(`Usuário ${userId} desconectado.`);
+        break;
+      }
     }
-    this.logger.log(
-      `Socket desconectado: ${socket.id} para o usuário: ${userId}`,
-    );
   }
 
   @SubscribeMessage('typingStart')

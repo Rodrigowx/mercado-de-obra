@@ -371,10 +371,10 @@ export default function ChatPage({ params }: { params: { chatId: string } }) {
         description,
         totalCost: computedTotalCost,
         budgetServices: budgetServices.map((bs) => ({
-          task: bs.task,
-          quantity: bs.quantity ? parseFloat(bs.quantity) : 0,
           unitOfMeasurementId: bs.unitOfMeasurementId,
+          task: bs.task,
           serviceValue: bs.serviceValue,
+          quantity: bs.quantity ? parseFloat(bs.quantity) : 0,
         })),
       };
 

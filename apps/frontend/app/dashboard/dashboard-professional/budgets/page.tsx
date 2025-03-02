@@ -5,7 +5,6 @@ import { useQuery, useMutation } from "@apollo/client";
 import { BUDGETS_BY_PROFESSIONAL } from "@/app/graphql/queries";
 import {
   UPDATE_BUDGET,
-  // UPDATE_BUDGET_STATUS, // Removido, pois vamos unificar o update
   DELETE_BUDGET,
 } from "@/app/graphql/mutations";
 import { AuthContext } from "@/app/components/AuthContext";

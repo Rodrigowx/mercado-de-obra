@@ -17,7 +17,7 @@ export class CreateBudgetInput {
   description?: string;
 
   @Field(() => Float)
-  laborCost?: number;
+  totalCost?: number;
 
   @Field(() => [CreateBudgetServiceInput])
   budgetServices?: CreateBudgetServiceInput[];

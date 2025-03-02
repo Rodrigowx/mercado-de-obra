@@ -267,18 +267,18 @@ export default function ProfessionalProfilePage({
     <section className="container mx-auto px-4 md:px-16">
       <div className="flex flex-row justify-between items-baseline">
         {/* Nome / Cabeçalho */}
-        <h1 className="text-3xl font-bold text-gray-800 dark:text-gray-200">
+        <h1 className="text-xs sm:text-xl md:text-2xl font-bold text-gray-800 dark:text-gray-200">
           {professional?.user?.name || "Profissional"}
         </h1>
         {/* Botões de compartilhar / salvar */}
-        <div className="flex flex-row justify-between items-center">
-          <button className="flex items-center hover:text-primary space-x-2 transition-colors duration-300">
-            <FaShareSquare />
-            <span className="underline underline-offset-2">Compartilhar</span>
+        <div className="flex flex-row justify-between items-center ">
+          <button className="flex items-center hover:text-primary space-x-1 transition-colors duration-300">
+            <FaShareSquare className="text-xs" />
+            <span className="underline underline-offset-2 text-xs sm:text-md">Compartilhar</span>
           </button>
-          <button className="flex items-center hover:text-primary space-x-2 ml-4 transition-colors duration-300">
-            <FaRegHeart />
-            <span className="underline underline-offset-2">Salvar</span>
+          <button className="flex items-center hover:text-primary space-x-1 ml-4 transition-colors duration-300">
+            <FaRegHeart className="text-xs" />
+            <span className="underline underline-offset-2 text-xs sm:text-md">Salvar</span>
           </button>
         </div>
       </div>
@@ -287,7 +287,7 @@ export default function ProfessionalProfilePage({
         {/* 1) SLIDE + LISTA DE PORTFÓLIOS */}
         <div className="flex flex-col md:flex-row w-full gap-2 rounded-lg overflow-hidden shadow-lg">
           {/* SLIDE PRINCIPAL */}
-          <div className="md:w-1/2 md:h-[32rem] h-[20rem]">
+          <div className="md:w-1/2 md:h-[32rem] h-[10rem]">
             {selectedPortfolio?.images?.length ? (
               <Swiper
                 key={selectedPortfolio.id}
@@ -384,10 +384,10 @@ export default function ProfessionalProfilePage({
         {/* 2) TÍTULO / DESCRIÇÃO DO PORTFÓLIO SELECIONADO */}
         {selectedPortfolio && (
           <div className="mt-4 flex flex-col gap-1">
-            <h2 className="text-2xl font-semibold">
+            <h2 className="text-xs sm:text-xl md:text-2xl font-semibold">
               {selectedPortfolio.title}
             </h2>
-            <h3 className="text-lg pl-1 text-gray-700 dark:text-gray-200">
+            <h3 className="text-xs sm:text-lg pl-1 text-gray-700 dark:text-gray-200">
               {selectedPortfolio.description}
             </h3>
           </div>
@@ -423,19 +423,19 @@ export default function ProfessionalProfilePage({
                 </div>
                 <div className="flex flex-col items-start justify-center">
                   <div className="flex flex-row items-baseline justify-start gap-2">
-                    <span className="text-lg font-semibold">
+                    <span className="text-xs sm:text-lg font-semibold">
                       {professional?.user?.name.split(" ")[0]}
                     </span>
                     <div className="flex items-center">
                       <FaStar className="text-yellow-500 text-sm" />
-                      <span className="text-sm ml-1">
+                      <span className="text-xs sm:text-sm ml-1">
                         {Number.isNaN(Number(professional?.rating))
                           ? "0.0"
                           : Number(professional?.rating).toFixed(1)}
                       </span>
                     </div>
                   </div>
-                  <span className="text-sm">
+                  <span className="text-xs sm:text-sm">
                     Desde{" "}
                     {professional?.createdAt
                       ? new Date(professional.createdAt).getFullYear()

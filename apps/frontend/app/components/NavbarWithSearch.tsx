@@ -74,7 +74,7 @@ export default function NavbarWithSearch() {
   };
 
   return (
-    <div className="sticky top-0 z-50 bg-white dark:bg-darkBg shadow-md transition-all duration-300 ease-in-out">
+    <div className="sticky w-full top-0 z-50 bg-white dark:bg-darkBg shadow-md transition-all duration-300 ease-in-out">
       <nav
         className={`relative px-6 flex items-center justify-between transition-all duration-300 ease-in-out ${
           isProfilePage || isChatPage
@@ -86,7 +86,7 @@ export default function NavbarWithSearch() {
       >
         {/* Logo */}
         <Link href="/" className="flex items-start gap-3 pl-10">
-          <OBhorizontal className="w-[3.4rem] h-auto shadow-md" />
+          <OBhorizontal className="w-[2.5rem] md:w-[3.4rem] h-auto shadow-md" />
           <div className="relative tracking-wide  flex box-content flex-col justify-center items-start gap-0">
             <p className="absolute top-1 font-coheadline text-lg text-secondary dark:text-tertiary ">
               mercado
@@ -96,6 +96,27 @@ export default function NavbarWithSearch() {
             </p>
           </div>
         </Link>
+
+        
+
+        {/* Campo de Pesquisa */}
+        <div
+          className={`
+            absolute left-1/2 -translate-x-1/2 transition-all duration-300 ease-in-out
+            ${isSearchVisible ? "top-4 opacity-100" : "top-9 opacity-100"}
+            w-72 sm:w-5/12 flex items-center bg-gray-100 dark:bg-secondary rounded-xl shadow-md px-4 py-2
+          `}
+        >
+          <input
+            id="search-input"
+            type="text"
+            placeholder="Buscar serviços e profissionais"
+            className="flex-grow placeholder:text-ellipsis placeholder:overflow-hidden placeholder:whitespace-nowrap bg-transparent outline-none text-gray-600 dark:text-gray-200 px-2 placeholder-gray-500 dark:placeholder-gray-400"
+          />
+          <button className="flex items-center justify-center bg-primary text-white w-8 h-8 rounded-full">
+            <FaSearch className="text-base" />
+          </button>
+        </div>
 
         {/* Botões e menu do usuário */}
         <div className="flex items-center gap-3 pr-10">
@@ -111,25 +132,6 @@ export default function NavbarWithSearch() {
 
           {/* Menu do usuário */}
           <UserMenu />
-        </div>
-
-        {/* Campo de Pesquisa */}
-        <div
-          className={`
-            absolute left-1/2 -translate-x-1/2 transition-all duration-300 ease-in-out
-            ${isSearchVisible ? "top-4 opacity-100" : "top-9 opacity-100"}
-            w-5/12 flex items-center bg-gray-100 dark:bg-secondary rounded-xl shadow-md px-4 py-2
-          `}
-        >
-          <input
-            id="search-input"
-            type="text"
-            placeholder="Buscar ideias, serviços e profissionais"
-            className="flex-grow bg-transparent outline-none text-gray-600 dark:text-gray-200 px-2 placeholder-gray-500 dark:placeholder-gray-400"
-          />
-          <button className="flex items-center justify-center bg-primary text-white w-8 h-8 rounded-full">
-            <FaSearch className="text-base" />
-          </button>
         </div>
       </nav>
 

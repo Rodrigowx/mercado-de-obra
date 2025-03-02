@@ -250,7 +250,7 @@ input CreateBudgetInput {
   clientId: Int!
   professionalId: Int!
   description: String!
-  laborCost: Float!
+  totalCost: Float!
   budgetServices: [CreateBudgetServiceInput!]!
 }
 
@@ -264,6 +264,10 @@ input CreateBudgetServiceInput {
 input UpdateBudgetInput {
   description: String!
   totalCost: Float!
+  status: String!
+  plannedStartDate: String!
+  plannedEndDate: String!
+  recommendedInstallments: Int!
   budgetServices: [CreateBudgetServiceInput!]!
 }
 
