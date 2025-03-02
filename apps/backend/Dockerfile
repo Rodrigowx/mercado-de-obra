@@ -58,5 +58,5 @@ ENV PORT=3000
 RUN echo "========== VARIÁVEIS DE AMBIENTE CONFIGURADAS ==========" && env
 
 # 8️⃣ Comando final para rodar a aplicação
-CMD ["sh", "-c", "npx prisma migrate deploy && node dist/main.js"]
+CMD ["node", "dist/main.js"]
 
