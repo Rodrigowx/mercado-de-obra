@@ -56,8 +56,8 @@ jobs:
         working-directory: apps/backend
         run: npx prisma migrate deploy
         env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
-          DIRECT_URL: ${{ secrets.DIRECT_URL }}
+          DATABASE_URL: "${{ secrets.DATABASE_URL }}"
+          DIRECT_URL: "${{ secrets.DIRECT_URL }}"
 
       - name: Deploy to Azure Container Apps
         uses: azure/container-apps-deploy-action@v2
