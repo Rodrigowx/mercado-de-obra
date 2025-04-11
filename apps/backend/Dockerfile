@@ -23,7 +23,7 @@ COPY prisma ./prisma
 RUN npm install
 
 # Gera o Prisma Client diretamente na imagem
-ENV DATABASE_URL="file:./dev.db"  # Fake URL só para o generate funcionar
+ENV DATABASE_URL="file:./dev.db"
 RUN npx prisma generate
 
 # Copia o restante do código (agora com client já gerado)
