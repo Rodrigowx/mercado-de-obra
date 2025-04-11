@@ -75,3 +75,6 @@ jobs:
           registryUsername: ${{ secrets.DOCKERHUB_USERNAME }}
           registryPassword: ${{ secrets.DOCKERHUB_PASSWORD }}
           imageToDeploy: ${{ secrets.DOCKERHUB_USERNAME }}/backend-app:latest
+          environmentVariables: |
+            DATABASE_URL=${{ secrets.DATABASE_URL }}
+            DIRECT_URL=${{ secrets.DIRECT_URL }}
