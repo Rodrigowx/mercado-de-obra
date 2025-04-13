@@ -3,25 +3,24 @@ import { CreateBudgetServiceInput } from './create-budget-service.input';
 
 @InputType()
 export class UpdateBudgetInput {
-  @Field(() => String)
+  @Field(() => String, { nullable: true })
   description?: string;
 
-  @Field(() => Float)
+  @Field(() => Float, { nullable: true })
   totalCost?: number;
 
-  @Field(() => String)
+  @Field(() => String, { nullable: true })
   status?: string;
 
-  @Field(() => String)
+  @Field(() => String, { nullable: true })
   plannedStartDate?: string;
 
-  @Field(() => String)
+  @Field(() => String, { nullable: true })
   plannedEndDate?: string;
 
-  @Field(() => Int)
+  @Field(() => Int, { nullable: true })
   recommendedInstallments?: number;
 
-  // Se quiser atualizar/inserir BudgetServices:
-  @Field(() => [CreateBudgetServiceInput])
+  @Field(() => [CreateBudgetServiceInput], { nullable: true })
   budgetServices?: CreateBudgetServiceInput[];
 }

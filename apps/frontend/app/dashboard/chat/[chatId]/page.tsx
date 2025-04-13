@@ -38,12 +38,11 @@ interface Message {
   createdAt?: string;
   clientRead?: boolean;
   professionalRead?: boolean;
-  // [CHANGED]: Tornei tudo opcional, pois pode não vir do back em alguns momentos
   conversation?: {
-    clientId?: number;
-    professionalId?: number;
-    client?: { name?: string };
-    professional?: { name?: string };
+    clientId: number;
+    professionalId: number;
+    client: { name: string };
+    professional: { name: string };
   };
 }
 
@@ -59,7 +58,7 @@ interface Need {
   updatedAt: string;
 }
 
-// [CHANGED]: Mesma interface, sem mexer nos campos, só comentando
+// Para o formulário dos serviços, armazenamos quantity e serviceValue como string para permitir campo vazio.
 interface BudgetServiceInput {
   task: string;
   quantity: string;
@@ -74,7 +73,7 @@ export default function ChatPage({ params }: { params: { chatId: string } }) {
   const userId = Number(user?.id);
   const isProfessional = user?.role === "PROFESSIONAL";
 
-  // ==================== ESTADOS DE CHAT ====================
+  // Estados do Chat
   const [messages, setMessages] = useState<Message[]>([]);
   const [content, setContent] = useState("");
   const [typingUsers, setTypingUsers] = useState<{ [userId: string]: string }>(
@@ -88,15 +87,18 @@ export default function ChatPage({ params }: { params: { chatId: string } }) {
   const [clientId, setClientId] = useState<number | null>(null);
   const [professionalId, setProfessionalId] = useState<number | null>(null);
 
-  // ==================== ESTADOS DO ORÇAMENTO ====================
+  // Estados do Orçamento
   const [showBudgetPanel, setShowBudgetPanel] = useState(false);
   const [selectedNeedId, setSelectedNeedId] = useState<number | null>(null);
   const [budgetId, setBudgetId] = useState<number | null>(null);
   const [budgetTotalCost, setBudgetTotalCost] = useState<number | null>(null);
   const [description, setDescription] = useState("");
-  const [budgetServices, setBudgetServices] = useState<BudgetServiceInput[]>([]);
+  // Removemos o input manual para totalTotalCost, pois será calculado a partir dos serviços.
+  const [budgetServices, setBudgetServices] = useState<BudgetServiceInput[]>(
+    []
+  );
 
-  // ==================== GRAPHQL (Needs, Budget) ====================
+  // Query: listar as Needs do chat
   const {
     data: needsData,
     loading: needsLoading,
@@ -104,18 +106,22 @@ export default function ChatPage({ params }: { params: { chatId: string } }) {
   } = useQuery(NEED_BY_CHAT_ID, {
     variables: { chatId },
     skip: !isAuthenticated || !chatId,
+    fetchPolicy: "network-only",
   });
 
+  // LazyQuery: buscar Budget pela Need (forçando refetch com network-only)
   const [loadBudgetByNeed] = useLazyQuery(BUDGET_BY_NEED_ID, {
     fetchPolicy: "network-only",
   });
 
+  // Mutations do Budget
   const [createBudget] = useMutation(CREATE_BUDGET);
   const [updateBudget] = useMutation(UPDATE_BUDGET);
 
+  // Units Context
   const { units } = useUnitsContext();
 
-  // [CHANGED]: Debounce typingStop
+  // Debounce para typingStop
   const emitTypingStopRef = useRef(
     debounce(() => {
       if (isSocketReady()) {
@@ -124,43 +130,60 @@ export default function ChatPage({ params }: { params: { chatId: string } }) {
     }, 1000)
   );
 
-  // ==================== 1) Conectar Socket se não estiver ====================
+  // ==================== SOCKET & MENSAGENS ====================
   useEffect(() => {
-    if (!isSocketReady() && isAuthenticated) {
-      connectSocket(userId);
-    }
-  }, [isAuthenticated]);
+    if (!isAuthenticated || !userId) return;
 
-  // ==================== 2) Entrar na Conversa ====================
+    if (!isSocketReady()) {
+      connectSocket(userId);
+      console.log("🔌 Conectando socket para usuário:", userId);
+    }
+  }, [isAuthenticated, userId]);
+
   useEffect(() => {
-    if (!chatId || !isAuthenticated) return;
+    if (!chatId || !isAuthenticated || !userId) return;
+
     let mounted = true;
 
     async function fetchAndJoin() {
-      if (isSocketReady() && mounted) {
-        try {
-          const recentMessages = await joinConversation(chatId, userId);
-          if (recentMessages.length > 0) {
-            const first = recentMessages[0];
-            // [CHANGED]: uso de optional chaining (?)
-            setClientName(first.conversation?.client?.name || "");
-            setClientId(first.conversation?.clientId || null);
-            setProfessionalName(first.conversation?.professional?.name || "");
-            setProfessionalId(first.conversation?.professionalId || null);
-            setMessages(recentMessages);
+      if (!isSocketReady()) {
+        console.log("⏳ Socket ainda não está pronto, aguardando...");
+        return false;
+      }
+
+      try {
+        console.log("🔄 Entrando na conversa:", chatId);
+        const recentMessages = await joinConversation(chatId, userId);
+
+        if (!mounted) return false;
+
+        if (recentMessages.length > 0) {
+          const first = recentMessages[0];
+          if (first.conversation) {
+            setClientName(first.conversation.client.name);
+            setClientId(first.conversation.clientId);
+            setProfessionalName(first.conversation.professional.name);
+            setProfessionalId(first.conversation.professionalId);
           }
-          markAsReadSocket(chatId, userId);
-        } catch (error) {
-          console.error("Erro ao entrar na conversa:", error);
+          setMessages(recentMessages);
         }
+
+        markAsReadSocket(chatId, userId);
+        return true;
+      } catch (error) {
+        console.error("❌ Erro ao entrar na conversa:", error);
+        return false;
       }
     }
 
+    // Tenta conectar imediatamente e configura um retry se falhar
     fetchAndJoin();
-    const checkInterval = setInterval(() => {
-      if (isSocketReady()) {
+
+    // Verifica a cada 500ms se o socket está pronto
+    const checkInterval = setInterval(async () => {
+      if (await fetchAndJoin()) {
         clearInterval(checkInterval);
-        fetchAndJoin();
+        console.log("✅ Conversa conectada com sucesso!");
       }
     }, 500);
 
@@ -168,40 +191,47 @@ export default function ChatPage({ params }: { params: { chatId: string } }) {
       mounted = false;
       clearInterval(checkInterval);
       if (isSocketReady()) {
+        console.log("👋 Saindo da conversa:", chatId);
         leaveConversation(chatId);
       }
     };
-  }, [chatId, isAuthenticated]);
+  }, [chatId, isAuthenticated, userId]);
 
-  // ==================== 3) Receber Nova Mensagem ====================
   useEffect(() => {
+    if (!isAuthenticated || !chatId || !isSocketReady()) return;
+
     const handleNewMessage = (newMsg: Message) => {
+      console.log("📩 Nova mensagem recebida:", newMsg);
       if (newMsg.conversationId === chatId) {
-        setMessages((prev) => [...prev, newMsg]);
+        setMessages((prev) => {
+          // Verifica se a mensagem já existe para evitar duplicação
+          const exists = prev.some((msg) => msg.id === newMsg.id);
+          if (exists) return prev;
+          return [...prev, newMsg];
+        });
       }
     };
 
-    if (isAuthenticated && isSocketReady()) {
-      onMessageReceived(handleNewMessage);
-    }
+    onMessageReceived(handleNewMessage);
+
     return () => {
-      if (isSocketReady()) {
-        offMessageReceived(handleNewMessage);
-      }
+      console.log("🛑 Removendo ouvinte de mensagens");
+      offMessageReceived(handleNewMessage);
     };
-  }, [chatId, isAuthenticated]);
+  }, [chatId, isAuthenticated, isSocketReady()]);
 
-  // ==================== 4) Scroll Automático ====================
-  useEffect(() => {
-    if (!messages.length) return;
-    const lastMsg = messages[messages.length - 1];
-    if (lastMessageRef.current?.id !== lastMsg.id) {
-      messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-      lastMessageRef.current = lastMsg;
-    }
-  }, [messages]);
+  // useEffect(() => {
+  //   if (!messages.length) return;
 
-  // ==================== 5) Marcar como lido se mensagem for do outro ====================
+  //   // Always scroll to the bottom when messages update
+  //   setTimeout(() => {
+  //     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  //   }, 300);
+
+  //   // Update the last message reference
+  //   lastMessageRef.current = messages[messages.length - 1];
+  // }, [messages]);
+
   useEffect(() => {
     if (!isSocketReady() || !messages.length || !isAuthenticated) return;
     const lastMsg = messages[messages.length - 1];
@@ -210,21 +240,15 @@ export default function ChatPage({ params }: { params: { chatId: string } }) {
     }
   }, [chatId, userId, isAuthenticated, messages]);
 
-  // ==================== 6) Evento de MensagensMarcadasComoLidas ====================
   useEffect(() => {
     const handleRead = (data: { conversationId: string; userId: number }) => {
       if (data.conversationId !== chatId) return;
       setMessages((prev) =>
         prev.map((msg) => {
-          // [CHANGED]: se não tiver msg.conversation, retorna inalterado
-          if (!msg.conversation) return msg;
-
-          if (data.userId === msg.conversation.clientId) {
+          if (data.userId === msg.conversation?.clientId)
             return { ...msg, clientRead: true };
-          }
-          if (data.userId === msg.conversation.professionalId) {
+          if (data.userId === msg.conversation?.professionalId)
             return { ...msg, professionalRead: true };
-          }
           return msg;
         })
       );
@@ -237,28 +261,29 @@ export default function ChatPage({ params }: { params: { chatId: string } }) {
         offMessagesMarkedAsRead(handleRead);
       }
     };
-  }, [chatId, isAuthenticated]);
+  }, [chatId, isAuthenticated, isSocketReady()]);
 
-  // [CHANGED]: Cancela o debounce ao desmontar
   useEffect(() => {
     return () => {
       emitTypingStopRef.current.cancel();
     };
   }, []);
 
-  // ==================== 7) Typing Start/Stop ====================
   useEffect(() => {
     if (!isSocketReady()) return;
-
-    const handleTypingStart = (data: { userId: number; conversationId: string }) => {
+    const handleTypingStart = (data: {
+      userId: number;
+      conversationId: string;
+    }) => {
       if (data.conversationId === chatId) {
-        // [CHANGED]: testamos se data.userId === clientId e se clientName existe
         const name = data.userId === clientId ? clientName : professionalName;
         setTypingUsers((prev) => ({ ...prev, [data.userId]: name }));
       }
     };
-
-    const handleTypingStop = (data: { userId: number; conversationId: string }) => {
+    const handleTypingStop = (data: {
+      userId: number;
+      conversationId: string;
+    }) => {
       if (data.conversationId === chatId) {
         setTypingUsers((prev) => {
           const newState = { ...prev };
@@ -267,10 +292,8 @@ export default function ChatPage({ params }: { params: { chatId: string } }) {
         });
       }
     };
-
     getSocket().on("typingStart", handleTypingStart);
     getSocket().on("typingStop", handleTypingStop);
-
     return () => {
       getSocket().off("typingStart", handleTypingStart);
       getSocket().off("typingStop", handleTypingStop);
@@ -280,6 +303,7 @@ export default function ChatPage({ params }: { params: { chatId: string } }) {
   // ==================== FUNÇÕES DE CHAT ====================
   function handleSendMessage() {
     if (!content.trim() || !isSocketReady() || !isAuthenticated) return;
+
     sendMessageSocket(chatId, userId, content);
     getSocket().emit("typingStop", { conversationId: chatId, userId });
     setContent("");
@@ -296,20 +320,14 @@ export default function ChatPage({ params }: { params: { chatId: string } }) {
 
   function getSenderName(msg: Message) {
     if (msg.senderId === userId) return "Você";
-    // [CHANGED]: Checa se existe 'conversation' antes de acessar
-    if (!msg.conversation) return "Desconhecido";
-    if (msg.conversation.clientId === msg.senderId) {
+    if (msg.senderId === msg.conversation?.clientId)
       return clientName || "Cliente";
-    }
     return professionalName || "Profissional";
   }
 
   function getReadIcon(msg: Message) {
     if (msg.senderId !== userId) return null;
-    // [CHANGED]: se não tiver 'conversation'
-    if (!msg.conversation) return null;
-
-    const iAmClient = msg.conversation.clientId === userId;
+    const iAmClient = msg.conversation?.clientId === userId;
     const otherSideRead = iAmClient ? msg.professionalRead : msg.clientRead;
     return otherSideRead ? (
       <span className="text-blue-700 font-black">✓✓</span>
@@ -318,7 +336,7 @@ export default function ChatPage({ params }: { params: { chatId: string } }) {
     );
   }
 
-// ==================== FUNÇÕES DE ORÇAMENTO ====================
+  // ==================== FUNÇÕES DE ORÇAMENTO ====================
 
   // Ao selecionar uma Need, carrega o Budget (se existir) e refaz o fetch
   async function handleSelectNeed(needId: number) {
@@ -429,111 +447,158 @@ export default function ChatPage({ params }: { params: { chatId: string } }) {
     }
   }
 
-  // ==================== RENDER ====================
+  // =========================================================================
+  //                              RENDER
+  // =========================================================================
   return (
     <div className="max-w-[1400px] mx-auto px-4 md:px-8 py-4 bg-gray-100 dark:bg-gray-900 h-screen flex flex-col transition-colors rounded-md shadow-lg animate__animated animate__fadeIn">
-      {/* HEADER */}
-      <div className="flex items-center justify-between mb-3">
+      {/* Header Section */}
+      <div className="flex items-center justify-between mb-3 pb-3 border-b dark:border-gray-700">
         <div className="flex items-center space-x-2">
+          {/* Display Name of the other chat participant */}
           <h1 className="text-xl md:text-2xl font-bold text-gray-800 dark:text-gray-100">
-            {/* [CHANGED]: Usa messages.length > 0 e optional chaining */}
-            {messages.length > 0 ? (
-              userId === messages[0].conversation?.clientId
-                ? professionalName
-                : clientName
-            ) : (
-              "Carregando..."
-            )}
+            {isProfessional ? clientName : professionalName || "Carregando..."}
           </h1>
+          {/* Optional: Add online status indicator here */}
         </div>
+        {/* Close Conversation Button */}
         <button
           onClick={handleCloseConversation}
-          className="bg-red-500 text-white px-3 py-2 rounded hover:bg-red-600 transition-colors"
+          className="bg-red-500 text-white px-3 py-2 rounded-md hover:bg-red-600 transition-colors text-sm flex items-center space-x-1"
+          title="Sair da Conversa"
         >
           <ImExit />
+          <span className="hidden sm:inline">Sair</span>
         </button>
       </div>
 
+      {/* Main Content Area (Chat + Budget Panel) */}
       <div className="flex-1 flex flex-col md:flex-row space-y-4 md:space-y-0 md:space-x-4 overflow-hidden animate__animated animate__fadeInUp">
-        {/* COLUNA DO CHAT */}
-        <div className="md:flex-1 bg-white dark:bg-gray-800 rounded-lg border border-gray-300 dark:border-gray-700 flex flex-col overflow-hidden shadow-inner">
-          {/* Lista de Mensagens */}
-          <div className="flex-1 p-4 overflow-y-auto">
+        {/* Chat Column */}
+        <div className="md:flex-1 bg-white dark:bg-gray-800 rounded-lg border border-gray-300 dark:border-gray-700 flex flex-col overflow-hidden shadow-inner h-full max-h-[calc(100vh-150px)] md:max-h-full">
+          {" "}
+          {/* Adjusted max-h */}
+          {/* Message List Area */}
+          <div className="flex-1 flex flex-col p-4 overflow-y-auto space-y-4 justify-end">
+            {" "}
+            {/* Vertical spacing */}
             {messages.map((msg, idx) => {
               const isMe = msg.senderId === userId;
               return (
                 <div
-                  key={msg.id ?? idx} // [CHANGED]: se msg.id não existir, usa idx
-                  className={`mb-6 max-w-lg relative ${
-                    isMe ? "ml-auto text-right" : "mr-auto text-left"
-                  }`}
+                  key={msg.id ?? `msg-${idx}`} // Prefer message ID for key
+                  className={`flex ${isMe ? "justify-end" : "justify-start"}`} // Align message bubble
                 >
-                  <p
-                    className={`text-xs font-semibold mb-1 ${
-                      isMe
-                        ? "text-orange-600 dark:text-orange-400"
-                        : "text-gray-600 dark:text-gray-300"
+                  <div
+                    className={`max-w-[75%] lg:max-w-[65%] px-1 ${
+                      isMe ? "" : ""
                     }`}
                   >
-                    {getSenderName(msg)}
-                  </p>
-                  <div
-                    className={`p-3 rounded-xl transition-all duration-300 ${
-                      isMe
-                        ? "bg-orange-300 text-white hover:scale-105"
-                        : "bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-100 hover:scale-[1.02]"
-                    } relative`}
-                  >
-                    <p className="whitespace-pre-wrap">{msg.content}</p>
-                    {isMe && (
-                      <span className="absolute -bottom-5 right-2 flex items-center space-x-1 text-xs">
-                        {getReadIcon(msg)}
-                        <span className="text-gray-500 dark:text-gray-300">
+                    {" "}
+                    {/* Bubble container */}
+                    {/* Show sender name only for messages from others */}
+                    {!isMe && (
+                      <p className="text-xs font-semibold mb-1 text-gray-600 dark:text-gray-400">
+                        {getSenderName(msg)}
+                      </p>
+                    )}
+                    {/* Message Bubble */}
+                    <div
+                      className={`p-3 rounded-lg shadow-sm transition-all duration-300 ${
+                        isMe
+                          ? "bg-orange-500 text-white" // Sent by me
+                          : "bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-100" // Received
+                      } relative`}
+                    >
+                      {/* Message Content */}
+                      <p className="whitespace-pre-wrap text-sm break-words">
+                        {msg.content}
+                      </p>
+                      {/* Timestamp and Read Status */}
+                      <div
+                        className={`text-xs mt-1.5 flex items-center space-x-1.5 ${
+                          isMe ? "justify-end" : "justify-start"
+                        }`}
+                      >
+                        {isMe && getReadIcon(msg)}{" "}
+                        {/* Read icon for own messages */}
+                        <span
+                          className={`opacity-80 ${
+                            isMe
+                              ? "text-orange-100 dark:text-orange-200"
+                              : "text-gray-500 dark:text-gray-400"
+                          }`}
+                        >
+                          {/* Format timestamp */}
                           {msg.createdAt
-                            ? new Date(msg.createdAt).toLocaleString([], {
-                                day: "2-digit",
-                                month: "2-digit",
+                            ? new Date(msg.createdAt).toLocaleTimeString([], {
                                 hour: "2-digit",
                                 minute: "2-digit",
                               })
                             : ""}
                         </span>
-                      </span>
-                    )}
+                      </div>
+                    </div>
                   </div>
                 </div>
               );
             })}
+            {/* Scroll Anchor */}
             <div ref={messagesEndRef} />
           </div>
-
-          {Object.values(typingUsers).length > 0 && (
-            <div className="flex animate-pulse items-center text-sm text-gray-500 dark:text-gray-400 italic m-5">
-              <TiMessageTyping className="mr-1" />
+          {/* Typing Indicator Area */}
+          {Object.keys(typingUsers).length > 0 && (
+            <div className="flex items-center text-sm text-gray-500 dark:text-gray-400 italic px-4 py-2 border-t dark:border-gray-700 shrink-0">
+              {" "}
+              {/* shrink-0 prevents collapse */}
+              <TiMessageTyping
+                size={20}
+                className="mr-2 animate-pulse text-orange-500"
+              />
               {Object.values(typingUsers).join(", ")} está digitando...
             </div>
           )}
-
-          {/* Área de Digitação */}
-          <div className="border-t border-gray-300 dark:border-gray-700 p-3 flex items-center space-x-2">
+          {/* Message Input Area */}
+          <div className="border-t border-gray-300 dark:border-gray-700 p-3 flex items-center space-x-2 bg-gray-50 dark:bg-gray-800 shrink-0">
+            {" "}
+            {/* Input area fixed at bottom */}
+            {/* Text Input */}
             <textarea
-              className="flex-1 h-12 resize-none bg-gray-100 dark:bg-gray-700 p-2 rounded focus:outline-none text-gray-700 dark:text-gray-200"
+              className="flex-1 h-12 min-h-[48px] max-h-24 resize-none bg-gray-100 dark:bg-gray-700 p-2 rounded-md border border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-1 focus:ring-orange-500 focus:border-orange-500 text-gray-700 dark:text-gray-200 text-sm"
               placeholder="Digite sua mensagem..."
               value={content}
+              rows={1} // Start with 1 row, can auto-grow with CSS/JS if needed
               onKeyDown={(e) => {
+                // Emit typing start event
                 if (isSocketReady()) {
                   getSocket().emit("typingStart", {
                     conversationId: chatId,
                     userId,
                   });
                 }
+                // Send message on Enter (unless Shift is pressed)
                 if (e.key === "Enter" && !e.shiftKey) {
                   e.preventDefault();
                   handleSendMessage();
                 }
+                // Reset typing stop timer
+                emitTypingStopRef.current.cancel();
               }}
-              onKeyUp={() => emitTypingStopRef.current()}
+              onKeyUp={() => {
+                // Start typing stop timer only if input has content
+                if (content.trim()) {
+                  emitTypingStopRef.current();
+                } else {
+                  if (isSocketReady()) {
+                    getSocket().emit("typingStop", {
+                      conversationId: chatId,
+                      userId,
+                    });
+                  }
+                } // Stop immediately if empty
+              }}
               onBlur={() => {
+                // Stop typing if input loses focus
                 if (isSocketReady()) {
                   getSocket().emit("typingStop", {
                     conversationId: chatId,
@@ -543,6 +608,7 @@ export default function ChatPage({ params }: { params: { chatId: string } }) {
               }}
               onChange={(e) => {
                 setContent(e.target.value);
+                // Stop typing immediately if input becomes empty
                 if (!e.target.value.trim() && isSocketReady()) {
                   getSocket().emit("typingStop", {
                     conversationId: chatId,
@@ -551,19 +617,31 @@ export default function ChatPage({ params }: { params: { chatId: string } }) {
                 }
               }}
             />
+            {/* Send Button */}
             <button
               onClick={handleSendMessage}
-              className="bg-orange-500 text-white px-4 py-2 rounded hover:bg-orange-600 transition-colors"
+              disabled={!content.trim()} // Disable if input is empty
+              className="bg-orange-500 text-white p-2 rounded-md hover:bg-orange-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shrink-0"
+              title="Enviar Mensagem"
             >
-              <IoSend />
+              <IoSend size={20} />
             </button>
+            {/* Budget Panel Toggle Button (for Professionals) */}
             {isProfessional && (
               <button
-                className="bg-orange-500 text-white px-3 py-1 rounded hover:bg-orange-700 transition-colors flex items-center space-x-1"
+                className={`text-white px-3 py-2 rounded-md hover:bg-orange-700 transition-colors flex items-center space-x-1 text-sm shrink-0 ${
+                  showBudgetPanel ? "bg-orange-600" : "bg-orange-500"
+                }`}
                 onClick={() => setShowBudgetPanel(!showBudgetPanel)}
+                title={
+                  showBudgetPanel
+                    ? "Fechar Painel de Orçamento"
+                    : "Abrir Painel de Orçamento"
+                }
               >
                 <FaEdit />
-                <span>{showBudgetPanel ? "Fechar" : "Orçamento"}</span>
+                {/* Optional: Add text label like "Orçamento" */}
+                {/* <span className="hidden sm:inline">{showBudgetPanel ? "Fechar" : "Orçamento"}</span> */}
               </button>
             )}
           </div>
@@ -572,8 +650,206 @@ export default function ChatPage({ params }: { params: { chatId: string } }) {
         {/* SIDE PANEL DO BUDGET */}
         {isProfessional && showBudgetPanel && (
           <div className="w-full md:w-96 bg-white dark:bg-gray-800 rounded-lg border border-gray-300 dark:border-gray-700 p-4 flex flex-col animate__animated animate__fadeInRight">
-            {/* [CHANGED]: Copie seu bloco original de orçamentos aqui */}
-            {/* ... */}
+            <h2 className="text-lg font-bold mb-3 text-center text-gray-700 dark:text-gray-200">
+              Orçamento
+            </h2>
+
+            {needsLoading ? (
+              <p className="text-sm text-gray-500">Carregando Needs...</p>
+            ) : needsError ? (
+              <p className="text-sm text-red-500">Erro ao carregar as Needs</p>
+            ) : (
+              <div className="mb-4">
+                <label className="block text-sm mb-1 font-medium text-gray-700 dark:text-gray-300">
+                  Selecione a Need
+                </label>
+                <select
+                  className="w-full p-2 border rounded bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-100"
+                  value={selectedNeedId ?? ""}
+                  onChange={async (e) => {
+                    const needId = Number(e.target.value);
+                    await handleSelectNeed(needId);
+                  }}
+                >
+                  <option value="">-- Escolha uma Need --</option>
+                  {needsData?.needsByChatId?.map((nd: Need) => (
+                    <option key={nd.id} value={nd.id}>
+                      {nd.title}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+
+            {/* Exibe o total calculado a partir dos valores individuais dos serviços */}
+            <div className="mb-4">
+              <div className="flex flex-row justify-between items-center">
+                <label className="block text-sm mb-1 font-medium text-gray-700 dark:text-gray-300">
+                  Total do Valor dos Serviços
+                </label>
+                <p className="mt-1 text-sm text-gray-600 dark:text-gray-400 italic">
+                  R${" "}
+                  {budgetServices
+                    .reduce(
+                      (acc, cur) => acc + (Number(cur.serviceValue) || 0),
+                      0
+                    )
+                    .toFixed(2)}
+                </p>
+              </div>
+            </div>
+
+            {/* Observações */}
+            <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              Observações
+            </label>
+            <textarea
+              className="w-full p-2 mb-4 rounded border bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-100"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              placeholder="Adicione observações aqui..."
+            />
+
+            {/* Seção de Serviços */}
+            <div className="relative group mb-4">
+              <div className="flex justify-between items-center">
+                <span className="font-semibold text-gray-700 dark:text-gray-300">
+                  Cadastrar serviços:
+                </span>
+                <button
+                  onClick={handleAddServiceItem}
+                  className="text-green-600 hover:text-green-800 transition-colors"
+                >
+                  <IoMdAddCircle size={24} />
+                </button>
+              </div>
+            </div>
+
+            <div className="flex-1 overflow-y-auto border-t pt-2">
+              {budgetServices.map((bs, idx) => (
+                <div key={idx} className="mb-3 border-b pb-2">
+                  {/* Tarefa */}
+                  <label className="text-xs font-medium text-gray-700 dark:text-gray-300">
+                    Atividade
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="Ex: Pintar parede..."
+                    className="w-full mt-1 mb-2 p-1 border rounded bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-100"
+                    value={bs.task}
+                    onChange={(e) =>
+                      setBudgetServices((prev) =>
+                        prev.map((item, i) =>
+                          i === idx
+                            ? {
+                                ...item,
+                                task: e.target.value,
+                                serviceValue: Number(item.serviceValue),
+                              }
+                            : item
+                        )
+                      )
+                    }
+                  />
+
+                  {/* Quantidade, Unidade e Valor do Serviço */}
+                  <div className="grid grid-cols-2 gap-4 mb-2">
+                    <div className="flex flex-col">
+                      <label className="text-xs font-medium text-gray-700 dark:text-gray-300">
+                        Quantidade
+                      </label>
+                      <input
+                        type="number"
+                        step="0.1"
+                        className="w-full p-1 border rounded bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-100"
+                        value={bs.quantity}
+                        onChange={(e) =>
+                          setBudgetServices((prev) =>
+                            prev.map((item, i) =>
+                              i === idx
+                                ? { ...item, quantity: e.target.value }
+                                : item
+                            )
+                          )
+                        }
+                      />
+                    </div>
+                    <div className="flex flex-col">
+                      <label className="text-xs font-medium text-gray-700 dark:text-gray-300">
+                        Unidade de Medida
+                      </label>
+                      <select
+                        className="p-1 border rounded bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-100"
+                        value={bs.unitOfMeasurementId}
+                        onChange={(e) =>
+                          setBudgetServices((prev) =>
+                            prev.map((item, i) =>
+                              i === idx
+                                ? {
+                                    ...item,
+                                    unitOfMeasurementId: Number(e.target.value),
+                                  }
+                                : item
+                            )
+                          )
+                        }
+                      >
+                        <option value={0}>Selecione</option>
+                        {units.map((u) => (
+                          <option key={u.id} value={u.id} title={u.description}>
+                            {u.code}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+
+                  {/* Novo campo: Valor do Serviço */}
+                  <div className="mb-2">
+                    <label className="text-xs font-medium text-gray-700 dark:text-gray-300">
+                      Valor do Serviço
+                    </label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      className="w-full p-1 border rounded bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-100"
+                      placeholder="Ex: 150.00"
+                      value={bs.serviceValue}
+                      onChange={(e) =>
+                        setBudgetServices((prev) =>
+                          prev.map((item, i) =>
+                            i === idx
+                              ? {
+                                  ...item,
+                                  serviceValue: Number(e.target.value),
+                                }
+                              : item
+                          )
+                        )
+                      }
+                    />
+                  </div>
+
+                  {/* Botão Remover */}
+                  <div className="flex justify-end">
+                    <button
+                      onClick={() => handleRemoveServiceItem(idx)}
+                      className="bg-red-600 text-white p-1 rounded hover:bg-red-700"
+                    >
+                      <MdDeleteForever size={20} />
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Botão Salvar */}
+            <button
+              onClick={handleSaveBudget}
+              className="mt-4 w-full py-2 bg-orange-600 text-white rounded justify-self-end hover:bg-orange-700 transition-colors"
+            >
+              Salvar
+            </button>
           </div>
         )}
       </div>

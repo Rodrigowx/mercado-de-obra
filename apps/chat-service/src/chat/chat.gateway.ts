@@ -100,40 +100,44 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       data.attachments,
     );
 
-    // Emite a mensagem para a sala da conversa
-    this.server
-      .in(`conversation_${data.conversationId}`)
-      .emit('messageReceived', message);
-
-    // Descobre o recipient
-    const conversation = await this.chatService.getConversation(data.conversationId);
+    const conversation = await this.chatService.getConversation(
+      data.conversationId,
+    );
     const recipientId =
       message.senderId === conversation.clientId
         ? conversation.professionalId
         : conversation.clientId;
 
+    // ✅ Emite diretamente para os dois sockets (mesmo fora da sala)
+    const senderSocket = this.activeUsers.get(Number(message.senderId));
+    if (senderSocket) {
+      senderSocket.emit('messageReceived', message);
+    }
+
+    const recipientSocket = this.activeUsers.get(Number(recipientId));
+    if (recipientSocket) {
+      recipientSocket.emit('messageReceived', message);
+    }
+
+    // 🔔 Notificações e contagem de não lidas
     const unreadCount = await this.chatService.getUnreadMessageCount(
       data.conversationId,
       recipientId,
     );
 
-    // Emite atualização de notificações p/ destinatário
     this.server
       .to(`notification_${recipientId}`)
       .emit('notifications', { [data.conversationId]: unreadCount });
 
-    // Emite newClientConversation COM dados (seu front espera { conversationId, message, unreadCount })
     const payload = {
       conversationId: data.conversationId,
       message,
       unreadCount,
     };
 
-    // Para o recipient
-    this.server.to(`notification_${recipientId}`).emit('newClientConversation', payload);
-
-    // Opcional: notificar a sala da conversa também
-    // this.server.in(`conversation_${data.conversationId}`).emit('newClientConversation', payload);
+    this.server
+      .to(`notification_${recipientId}`)
+      .emit('newClientConversation', payload);
 
     return message;
   }
@@ -175,13 +179,17 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     }
 
     client.join(`conversation_${data.conversationId}`);
-    this.logger.log(`conversation_ connected: ${data.userId}, ${data.conversationId}`);
+    this.logger.log(
+      `conversation_ connected: ${data.userId}, ${data.conversationId}`,
+    );
 
     // Marca como lidas
     await this.chatService.markMessagesAsRead(data.conversationId, data.userId);
 
     // Envia mensagens recentes
-    const recentMessages = await this.chatService.getRecentMessages(data.conversationId);
+    const recentMessages = await this.chatService.getRecentMessages(
+      data.conversationId,
+    );
     client.emit('recentMessages', recentMessages);
 
     // Atualiza notificações p/ esse user

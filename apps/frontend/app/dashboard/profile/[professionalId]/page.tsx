@@ -71,6 +71,8 @@ export default function ProfessionalProfilePage({
   // Controle de conversa/socket
   const [conversationId, setConversationId] = useState<string>("");
   const [sending, setSending] = useState(false);
+  const [successMessage, setSuccessMessage] = useState<string>("");
+  const [errorMessage, setErrorMessage] = useState<string>("");
 
   // Mutation para criar Need
   const [createNeedMutation] = useMutation(CREATE_NEED);
@@ -109,30 +111,31 @@ export default function ProfessionalProfilePage({
   }
 
   const handleSendNeed = async () => {
-    // console.log("Início do handleSendNeed");
     try {
-      if (sending) {
-        // console.log("Envio duplicado detectado. Abortando a função.");
-        return;
-      }
+      if (sending) return;
       setSending(true);
 
-      // Verifica autenticação e existência do profissional
+      // Verificações iniciais
       if (!isAuthenticated) {
-        // console.log("Usuário não autenticado. Redirecionando para /login.");
         router.push("/login");
         return;
       }
+
       if (!professional) {
-        console.error("Profissional não encontrado.");
         alert("Profissional não encontrado");
         return;
       }
 
-      // 1) Verifica ou cria a conversa
+      // 1. Garantir que o socket esteja conectado PRIMEIRO
+      if (!isSocketReady() && isAuthenticated) {
+        connectSocket(Number(user?.id));
+        // Pequena pausa para garantir que o socket se conecte
+        await new Promise((resolve) => setTimeout(resolve, 300));
+      }
+
+      // 2. Criar/obter conversa
       let currentConversationId = conversationId;
       if (!currentConversationId) {
-        // console.log("Nenhuma conversa existente. Criando nova conversa...");
         try {
           const conversation = await createConversation(
             Number(user?.id),
@@ -142,37 +145,26 @@ export default function ProfessionalProfilePage({
           );
           currentConversationId = conversation.id;
           setConversationId(currentConversationId);
-          // console.log("Conversa criada com sucesso. ID:", currentConversationId);
         } catch (convErr) {
-          console.error("Erro ao criar conversa:", convErr);
-          alert("Erro ao criar a conversa. Tente novamente.");
+          setErrorMessage(`Não foi possível criar uma conversa com o profissional:  ${convErr}.`);
+          setTimeout(() => {
+            setErrorMessage("");
+          }, 5000);
           return;
         }
-      } else {
-        // console.log("Conversa já existente. ID:", currentConversationId);
       }
 
-      // Validação do currentConversationId
+      // Validação do conversationId
       if (!currentConversationId || currentConversationId.trim() === "") {
-        console.error("currentConversationId inválido após a criação.");
-        alert("Erro: conversationId inválido!");
+        setErrorMessage("Erro: ID de conversação inválido!");
+        setTimeout(() => {
+          setErrorMessage("");
+        }, 5000);
         return;
       }
 
-      // Aguarda 1,5 segundo para garantir que o conversationId esteja disponível
-      // console.log("Aguardando 1500ms para garantir reconhecimento do conversationId...");
-      await new Promise((resolve) => setTimeout(resolve, 1500));
-
-      // 2) Cria a Need, se os dados estiverem preenchidos
+      // 3. Criar a Need via GraphQL
       if (needTitle && needDescription && selectedServiceId) {
-        // console.log("Criando Need com os seguintes dados:", {
-        //   title: needTitle,
-        //   description: needDescription,
-        //   clientId: Number(user?.id),
-        //   professionalId: Number(professionalId),
-        //   chatId: currentConversationId, // usa a variável local consistente
-        //   serviceId: selectedServiceId,
-        // });
         try {
           const mutationResponse = await createNeedMutation({
             variables: {
@@ -181,77 +173,67 @@ export default function ProfessionalProfilePage({
                 description: needDescription,
                 clientId: Number(user?.id),
                 professionalId: Number(professionalId),
-                chatId: currentConversationId, // garante o uso do ID correto
+                chatId: currentConversationId,
                 serviceId: selectedServiceId,
               },
             },
           });
-          const createdNeedId = mutationResponse.data?.createNeed?.id ?? null;
-          // console.log(
-          //   "Need criada com sucesso. ID da Need:",
-          //   createdNeedId,
-          //   "para a conversa:",
-          //   currentConversationId
-          // );
+          console.log("Need criada:", mutationResponse.data?.createNeed?.id);
         } catch (needErr) {
-          console.error("Erro ao criar Need:", needErr);
-          alert("Erro ao criar a Need. Verifique os dados e tente novamente.");
+          setErrorMessage(`Erro ao registrar sua necessidade:  ${needErr} Tente novamente.`);
+          setTimeout(() => {
+            setErrorMessage("");
+          }, 5000);
           return;
         }
       } else {
-        console.error("Dados insuficientes para criar a Need. Detalhes:", {
-          needTitle,
-          needDescription,
-          selectedServiceId,
-        });
+        setErrorMessage("Preencha todos os campos do formulário");
+        setTimeout(() => {
+          setErrorMessage("");
+        }, 5000);
+        return;
       }
 
-      // 3) Conecta ao socket, junta-se à conversa e envia a mensagem
-      // console.log("Verificando a conexão do socket...");
-      if (!isSocketReady() && isAuthenticated) {
-        // console.log("Socket não está pronto. Conectando...");
-        connectSocket(Number(user?.id));
-      }
+      // 4. Entrar na conversa e enviar mensagem
       try {
-        const isInConversation = await joinConversation(
-          currentConversationId,
-          Number(user?.id)
-        );
-        // console.log("Resultado de joinConversation:", isInConversation);
-        if (isInConversation && clientNeed.trim()) {
-          // console.log(
-          //   "Enviando mensagem via socket para a conversa:",
-          //   currentConversationId,
-          //   "Mensagem:",
-          //   clientNeed
-          // );
+        // Entrar na conversa primeiro (retorna mensagens recentes)
+        await joinConversation(currentConversationId, Number(user?.id));
+
+        if (clientNeed.trim()) {
+          // Enviar a mensagem inicial
           sendMessageSocket(
             currentConversationId,
             Number(user?.id),
             clientNeed
           );
+
+          // Limpar formulário após envio bem-sucedido
           setClientNeed("");
-        } else {
-          console.error("Falha ao entrar na conversa ou mensagem vazia.");
+          setNeedTitle("");
+          setNeedDescription("");
+          setSelectedServiceId(null);
+          
+          // Exibir mensagem de sucesso após envio
+          setSuccessMessage("Mensagem enviada com sucesso! Verifique a seção de notificações para conversar com o profissional.");
+
+          // Limpar a mensagem após alguns segundos
+          setTimeout(() => {
+            setSuccessMessage("");
+          }, 5000);
         }
       } catch (socketErr) {
-        console.error(
-          "Erro ao conectar/juntar à conversa ou enviar mensagem:",
-          socketErr
-        );
+        setErrorMessage(`Erro na comunicação via socket: ${socketErr}`);
+        setTimeout(() => {
+          setErrorMessage("");
+        }, 5000);
       }
-
-      // Limpa os campos do formulário
-      // console.log("Limpando os campos do formulário.");
-      setNeedTitle("");
-      setNeedDescription("");
-      setSelectedServiceId(null);
     } catch (err) {
-      console.error("Erro geral no handleSendNeed:", err);
-      alert("Erro ao enviar mensagem. Tente novamente.");
+      setErrorMessage(`Ocorreu um erro inesperado:  ${err} Tente novamente.`);
+      setTimeout(() => {
+        setErrorMessage("");
+      }, 5000);
     } finally {
       setSending(false);
-      // console.log("Finalização do handleSendNeed. Estado sending:", false);
     }
   };
 
@@ -274,11 +256,15 @@ export default function ProfessionalProfilePage({
         <div className="flex flex-row justify-between items-center ">
           <button className="flex items-center hover:text-primary space-x-1 transition-colors duration-300">
             <FaShareSquare className="text-xs" />
-            <span className="underline underline-offset-2 text-xs sm:text-md">Compartilhar</span>
+            <span className="underline underline-offset-2 text-xs sm:text-md">
+              Compartilhar
+            </span>
           </button>
           <button className="flex items-center hover:text-primary space-x-1 ml-4 transition-colors duration-300">
             <FaRegHeart className="text-xs" />
-            <span className="underline underline-offset-2 text-xs sm:text-md">Salvar</span>
+            <span className="underline underline-offset-2 text-xs sm:text-md">
+              Salvar
+            </span>
           </button>
         </div>
       </div>
@@ -568,6 +554,16 @@ export default function ProfessionalProfilePage({
           </div>
         </div>
         <hr className="w-full border-t border-neutral-300 dark:border-neutral-600 my-1" />
+        {successMessage && (
+        <div className="fixed bottom-4 right-4 p-4 bg-green-100 text-green-700 rounded-lg shadow-lg animate-fade-in-out">
+          {successMessage}
+        </div>
+      )}
+      {errorMessage && (
+        <div className="fixed bottom-4 right-4 p-4 bg-red-100 text-red-700 rounded-lg shadow-lg animate-fade-in-out">
+          {errorMessage}
+        </div>
+      )}
       </div>
     </section>
   );

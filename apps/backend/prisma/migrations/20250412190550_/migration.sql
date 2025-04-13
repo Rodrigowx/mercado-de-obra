@@ -1,8 +1,5 @@
--- CreateSchema
-CREATE SCHEMA IF NOT EXISTS "mercado-de-obra";
-
 -- CreateTable
-CREATE TABLE "mercado-de-obra"."User" (
+CREATE TABLE "User" (
     "id" SERIAL NOT NULL,
     "email" TEXT NOT NULL,
     "password" TEXT NOT NULL,
@@ -18,7 +15,7 @@ CREATE TABLE "mercado-de-obra"."User" (
 );
 
 -- CreateTable
-CREATE TABLE "mercado-de-obra"."Professional" (
+CREATE TABLE "Professional" (
     "id" INTEGER NOT NULL,
     "profileImage" TEXT,
     "skills" INTEGER[],
@@ -31,7 +28,7 @@ CREATE TABLE "mercado-de-obra"."Professional" (
 );
 
 -- CreateTable
-CREATE TABLE "mercado-de-obra"."Client" (
+CREATE TABLE "Client" (
     "id" INTEGER NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
@@ -40,7 +37,7 @@ CREATE TABLE "mercado-de-obra"."Client" (
 );
 
 -- CreateTable
-CREATE TABLE "mercado-de-obra"."Service" (
+CREATE TABLE "Service" (
     "id" SERIAL NOT NULL,
     "name" TEXT NOT NULL,
     "icon" TEXT NOT NULL,
@@ -50,7 +47,7 @@ CREATE TABLE "mercado-de-obra"."Service" (
 );
 
 -- CreateTable
-CREATE TABLE "mercado-de-obra"."Portfolio" (
+CREATE TABLE "Portfolio" (
     "id" SERIAL NOT NULL,
     "professionalId" INTEGER NOT NULL,
     "serviceId" INTEGER NOT NULL,
@@ -63,7 +60,7 @@ CREATE TABLE "mercado-de-obra"."Portfolio" (
 );
 
 -- CreateTable
-CREATE TABLE "mercado-de-obra"."Image" (
+CREATE TABLE "Image" (
     "id" SERIAL NOT NULL,
     "url" TEXT NOT NULL,
     "portfolioId" INTEGER NOT NULL,
@@ -74,7 +71,7 @@ CREATE TABLE "mercado-de-obra"."Image" (
 );
 
 -- CreateTable
-CREATE TABLE "mercado-de-obra"."Location" (
+CREATE TABLE "Location" (
     "id" SERIAL NOT NULL,
     "professionalId" INTEGER NOT NULL,
     "latitude" DOUBLE PRECISION NOT NULL,
@@ -89,7 +86,7 @@ CREATE TABLE "mercado-de-obra"."Location" (
 );
 
 -- CreateTable
-CREATE TABLE "mercado-de-obra"."PasswordResetCode" (
+CREATE TABLE "PasswordResetCode" (
     "id" SERIAL NOT NULL,
     "userId" INTEGER NOT NULL,
     "code" TEXT NOT NULL,
@@ -102,7 +99,7 @@ CREATE TABLE "mercado-de-obra"."PasswordResetCode" (
 );
 
 -- CreateTable
-CREATE TABLE "mercado-de-obra"."EmailVerificationCode" (
+CREATE TABLE "EmailVerificationCode" (
     "userId" INTEGER NOT NULL,
     "code" TEXT NOT NULL,
     "expiresAt" TIMESTAMP(3) NOT NULL,
@@ -111,7 +108,7 @@ CREATE TABLE "mercado-de-obra"."EmailVerificationCode" (
 );
 
 -- CreateTable
-CREATE TABLE "mercado-de-obra"."Review" (
+CREATE TABLE "Review" (
     "id" SERIAL NOT NULL,
     "clientId" INTEGER NOT NULL,
     "professionalId" INTEGER NOT NULL,
@@ -125,7 +122,7 @@ CREATE TABLE "mercado-de-obra"."Review" (
 );
 
 -- CreateTable
-CREATE TABLE "mercado-de-obra"."Budget" (
+CREATE TABLE "Budget" (
     "id" SERIAL NOT NULL,
     "needId" INTEGER NOT NULL,
     "clientId" INTEGER NOT NULL,
@@ -137,7 +134,10 @@ CREATE TABLE "mercado-de-obra"."Budget" (
     "materialList" TEXT[],
     "materialCost" DOUBLE PRECISION,
     "totalCost" DOUBLE PRECISION,
+    "recommendedInstallments" INTEGER,
     "serviceDetails" TEXT,
+    "plannedStartDate" TEXT,
+    "plannedEndDate" TEXT,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
@@ -145,7 +145,7 @@ CREATE TABLE "mercado-de-obra"."Budget" (
 );
 
 -- CreateTable
-CREATE TABLE "mercado-de-obra"."Need" (
+CREATE TABLE "Need" (
     "id" SERIAL NOT NULL,
     "title" TEXT NOT NULL,
     "description" TEXT NOT NULL,
@@ -161,7 +161,7 @@ CREATE TABLE "mercado-de-obra"."Need" (
 );
 
 -- CreateTable
-CREATE TABLE "mercado-de-obra"."UnitOfMeasurement" (
+CREATE TABLE "UnitOfMeasurement" (
     "id" SERIAL NOT NULL,
     "code" TEXT NOT NULL,
     "description" TEXT NOT NULL,
@@ -170,7 +170,7 @@ CREATE TABLE "mercado-de-obra"."UnitOfMeasurement" (
 );
 
 -- CreateTable
-CREATE TABLE "mercado-de-obra"."BudgetService" (
+CREATE TABLE "BudgetService" (
     "id" SERIAL NOT NULL,
     "budgetId" INTEGER NOT NULL,
     "unitOfMeasurementId" INTEGER NOT NULL,
@@ -185,70 +185,121 @@ CREATE TABLE "mercado-de-obra"."BudgetService" (
 );
 
 -- CreateIndex
-CREATE UNIQUE INDEX "User_email_role_key" ON "mercado-de-obra"."User"("email", "role");
+CREATE UNIQUE INDEX "User_email_role_key" ON "User"("email", "role");
 
 -- CreateIndex
-CREATE INDEX "Professional_id_idx" ON "mercado-de-obra"."Professional"("id");
+CREATE INDEX "Professional_id_idx" ON "Professional"("id");
 
 -- CreateIndex
-CREATE INDEX "Client_id_idx" ON "mercado-de-obra"."Client"("id");
+CREATE INDEX "Client_id_idx" ON "Client"("id");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "Service_name_key" ON "mercado-de-obra"."Service"("name");
+CREATE UNIQUE INDEX "Service_name_key" ON "Service"("name");
 
 -- CreateIndex
-CREATE INDEX "Portfolio_professionalId_idx" ON "mercado-de-obra"."Portfolio"("professionalId");
+CREATE INDEX "Portfolio_professionalId_idx" ON "Portfolio"("professionalId");
 
 -- CreateIndex
-CREATE INDEX "Portfolio_serviceId_idx" ON "mercado-de-obra"."Portfolio"("serviceId");
+CREATE INDEX "Portfolio_serviceId_idx" ON "Portfolio"("serviceId");
 
 -- CreateIndex
-CREATE INDEX "Image_portfolioId_idx" ON "mercado-de-obra"."Image"("portfolioId");
+CREATE INDEX "Image_portfolioId_idx" ON "Image"("portfolioId");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "Location_professionalId_key" ON "mercado-de-obra"."Location"("professionalId");
+CREATE UNIQUE INDEX "Location_professionalId_key" ON "Location"("professionalId");
 
 -- CreateIndex
-CREATE INDEX "Location_professionalId_idx" ON "mercado-de-obra"."Location"("professionalId");
+CREATE INDEX "Location_professionalId_idx" ON "Location"("professionalId");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "PasswordResetCode_userId_key" ON "mercado-de-obra"."PasswordResetCode"("userId");
+CREATE UNIQUE INDEX "PasswordResetCode_userId_key" ON "PasswordResetCode"("userId");
 
 -- CreateIndex
-CREATE INDEX "Review_clientId_idx" ON "mercado-de-obra"."Review"("clientId");
+CREATE INDEX "Review_clientId_idx" ON "Review"("clientId");
 
 -- CreateIndex
-CREATE INDEX "Review_professionalId_idx" ON "mercado-de-obra"."Review"("professionalId");
+CREATE INDEX "Review_professionalId_idx" ON "Review"("professionalId");
 
 -- CreateIndex
-CREATE INDEX "Budget_needId_idx" ON "mercado-de-obra"."Budget"("needId");
+CREATE INDEX "Budget_needId_idx" ON "Budget"("needId");
 
 -- CreateIndex
-CREATE INDEX "Budget_clientId_idx" ON "mercado-de-obra"."Budget"("clientId");
+CREATE INDEX "Budget_clientId_idx" ON "Budget"("clientId");
 
 -- CreateIndex
-CREATE INDEX "Budget_professionalId_idx" ON "mercado-de-obra"."Budget"("professionalId");
+CREATE INDEX "Budget_professionalId_idx" ON "Budget"("professionalId");
 
 -- CreateIndex
-CREATE INDEX "Need_clientId_idx" ON "mercado-de-obra"."Need"("clientId");
+CREATE INDEX "Need_clientId_idx" ON "Need"("clientId");
 
 -- CreateIndex
-CREATE INDEX "Need_professionalId_idx" ON "mercado-de-obra"."Need"("professionalId");
+CREATE INDEX "Need_professionalId_idx" ON "Need"("professionalId");
 
 -- CreateIndex
-CREATE INDEX "Need_serviceId_idx" ON "mercado-de-obra"."Need"("serviceId");
+CREATE INDEX "Need_serviceId_idx" ON "Need"("serviceId");
 
 -- CreateIndex
-CREATE INDEX "Need_budgetId_idx" ON "mercado-de-obra"."Need"("budgetId");
+CREATE INDEX "Need_budgetId_idx" ON "Need"("budgetId");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "UnitOfMeasurement_code_key" ON "mercado-de-obra"."UnitOfMeasurement"("code");
+CREATE UNIQUE INDEX "UnitOfMeasurement_code_key" ON "UnitOfMeasurement"("code");
 
 -- CreateIndex
-CREATE INDEX "BudgetService_budgetId_idx" ON "mercado-de-obra"."BudgetService"("budgetId");
+CREATE INDEX "BudgetService_budgetId_idx" ON "BudgetService"("budgetId");
 
 -- CreateIndex
-CREATE INDEX "BudgetService_unitOfMeasurementId_idx" ON "mercado-de-obra"."BudgetService"("unitOfMeasurementId");
+CREATE INDEX "BudgetService_unitOfMeasurementId_idx" ON "BudgetService"("unitOfMeasurementId");
 
 -- CreateIndex
-CREATE INDEX "BudgetService_serviceId_idx" ON "mercado-de-obra"."BudgetService"("serviceId");
+CREATE INDEX "BudgetService_serviceId_idx" ON "BudgetService"("serviceId");
+
+-- AddForeignKey
+ALTER TABLE "Professional" ADD CONSTRAINT "Professional_id_fkey" FOREIGN KEY ("id") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Client" ADD CONSTRAINT "Client_id_fkey" FOREIGN KEY ("id") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Portfolio" ADD CONSTRAINT "Portfolio_professionalId_fkey" FOREIGN KEY ("professionalId") REFERENCES "Professional"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Image" ADD CONSTRAINT "Image_portfolioId_fkey" FOREIGN KEY ("portfolioId") REFERENCES "Portfolio"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Location" ADD CONSTRAINT "Location_professionalId_fkey" FOREIGN KEY ("professionalId") REFERENCES "Professional"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "PasswordResetCode" ADD CONSTRAINT "PasswordResetCode_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "EmailVerificationCode" ADD CONSTRAINT "EmailVerificationCode_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Review" ADD CONSTRAINT "Review_clientId_fkey" FOREIGN KEY ("clientId") REFERENCES "Client"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Review" ADD CONSTRAINT "Review_professionalId_fkey" FOREIGN KEY ("professionalId") REFERENCES "Professional"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Budget" ADD CONSTRAINT "Budget_needId_fkey" FOREIGN KEY ("needId") REFERENCES "Need"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Budget" ADD CONSTRAINT "Budget_clientId_fkey" FOREIGN KEY ("clientId") REFERENCES "Client"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Budget" ADD CONSTRAINT "Budget_professionalId_fkey" FOREIGN KEY ("professionalId") REFERENCES "Professional"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Need" ADD CONSTRAINT "Need_clientId_fkey" FOREIGN KEY ("clientId") REFERENCES "Client"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Need" ADD CONSTRAINT "Need_professionalId_fkey" FOREIGN KEY ("professionalId") REFERENCES "Professional"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "BudgetService" ADD CONSTRAINT "BudgetService_budgetId_fkey" FOREIGN KEY ("budgetId") REFERENCES "Budget"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "BudgetService" ADD CONSTRAINT "BudgetService_unitOfMeasurementId_fkey" FOREIGN KEY ("unitOfMeasurementId") REFERENCES "UnitOfMeasurement"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "BudgetService" ADD CONSTRAINT "BudgetService_serviceId_fkey" FOREIGN KEY ("serviceId") REFERENCES "Service"("id") ON DELETE SET NULL ON UPDATE CASCADE;

@@ -45,16 +45,6 @@ export const CREATE_BUDGET = gql`
   }
 `;
 
-
-export const UPDATE_BUDGET_STATUS = gql`
-  mutation UpdateBudgetStatus($id: Int!, $status: String!) {
-    updateBudgetStatus(id: $id, status: $status) {
-      id
-      status
-      updatedAt
-    }
-  }
-`;
 export const DELETE_BUDGET = gql`
   mutation DeleteBudget($id: Int!) {
     deleteBudget(id: $id) {
@@ -111,6 +101,18 @@ export const UPDATE_BUDGET = gql`
         createdAt
         updatedAt
       }
+    }
+  }
+`;
+
+
+
+export const UPDATE_BUDGET_STATUS = gql`
+  mutation UpdateBudgetStatus($id: Int!, $status: String!) {
+    updateBudgetStatus(id: $id, status: $status) {
+      id
+      status
+      updatedAt
     }
   }
 `;
