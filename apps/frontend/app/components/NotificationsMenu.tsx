@@ -97,7 +97,7 @@ const NotificationsMenu: React.FC = () => {
     }
 
     prevUnreadRef.current = totalUnread;
-  }, [totalUnread, conversationIds, user?.id, isAuthenticated]);
+  }, [totalUnread, conversationIds, user?.id, isAuthenticated, isSocketReady()]);
 
   // Efeito: escuta "notifications" e "newClientConversation" no socket
   useEffect(() => {
@@ -131,7 +131,7 @@ const NotificationsMenu: React.FC = () => {
         socket.off("newClientConversation", handleNewConversation);
       }
     };
-  }, [isAuthenticated]);
+  }, [isAuthenticated, isSocketReady()]);
 
   // Efeito: ao logar, conectar socket + fetch conversas
   useEffect(() => {
@@ -155,7 +155,7 @@ const NotificationsMenu: React.FC = () => {
         // "as any" pois handleNewClientConversation não recebe param
       }
     };
-  }, [user, isAuthenticated]);
+  }, [user, isAuthenticated, isSocketReady()]);
 
   // Efeito: joinNotification + fetchLastMessages sempre que conversationIds mudar
   useEffect(() => {
@@ -180,7 +180,7 @@ const NotificationsMenu: React.FC = () => {
         s.off("notifications", handleNewNotification);
       }
     };
-  }, [conversationIds, isAuthenticated]);
+  }, [conversationIds, isAuthenticated, isSocketReady()]);
 
   // Efeito: escutar "messageReceived"
   useEffect(() => {
@@ -203,7 +203,7 @@ const NotificationsMenu: React.FC = () => {
       onMessageReceived(handleNewMessage);
     }
     return () => offMessageReceived(handleNewMessage);
-  }, [isAuthenticated, conversationIds, isChatPage, chatId]);
+  }, [isAuthenticated, conversationIds, isChatPage, chatId, isSocketReady()]);
 
   function handleClickConversation(conversationId: string) {
     router.push(`/dashboard/chat/${conversationId}`);
