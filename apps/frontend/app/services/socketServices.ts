@@ -78,6 +78,11 @@ export function onNotifications(callback: (notifications: any) => void) {
   socket.on("notifications", callback);
 }
 
+export function offNotifications(callback: (notifications: any) => void) {
+  if (!socket) return;
+  socket.off("notifications", callback);
+}
+
 /**
  * Recebe o evento `newClientConversation` com payload:
  * { conversationId, message, unreadCount }
@@ -87,6 +92,13 @@ export function onNewClientConversation(
 ) {
   if (!socket) throw new Error("Socket não conectado");
   socket.on("newClientConversation", callback);
+}
+
+export function offNewClientConversation(
+  callback: (data: { conversationId: string; message: Message; unreadCount: number }) => void
+) {
+  if (!socket) return;
+  socket.off("newClientConversation", callback);
 }
 
 /**

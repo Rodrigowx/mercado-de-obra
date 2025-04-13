@@ -51,7 +51,7 @@ export default function ProfessionalProfilePage({
   const { services, getServiceById } = useServicesContext();
 
   const { professionalId } = params;
-  const { user, isAuthenticated } = useContext(AuthContext);
+  const { user, isAuthenticated, socketConnected } = useContext(AuthContext);
 
   // States principais
   const [professional, setProfessional] = useState<Professional | null>(null);
@@ -113,6 +113,7 @@ export default function ProfessionalProfilePage({
   const handleSendNeed = async () => {
     try {
       if (sending) return;
+      if (!socketConnected) return;
       setSending(true);
 
       // Verificações iniciais
@@ -124,13 +125,6 @@ export default function ProfessionalProfilePage({
       if (!professional) {
         alert("Profissional não encontrado");
         return;
-      }
-
-      // 1. Garantir que o socket esteja conectado PRIMEIRO
-      if (!isSocketReady() && isAuthenticated) {
-        connectSocket(Number(user?.id));
-        // Pequena pausa para garantir que o socket se conecte
-        await new Promise((resolve) => setTimeout(resolve, 300));
       }
 
       // 2. Criar/obter conversa

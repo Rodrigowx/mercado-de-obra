@@ -4,13 +4,11 @@ import React, { useEffect, useState, useRef, useContext } from "react";
 import { useRouter } from "next/navigation";
 import { AuthContext } from "@/app/components/AuthContext";
 import {
-  connectSocket,
   joinConversation,
   leaveConversation,
   onMessageReceived,
   offMessageReceived,
   sendMessageSocket,
-  isSocketReady,
   markAsReadSocket,
   onMessagesMarkedAsRead,
   offMessagesMarkedAsRead,
@@ -69,7 +67,7 @@ interface BudgetServiceInput {
 export default function ChatPage({ params }: { params: { chatId: string } }) {
   const { chatId } = params;
   const router = useRouter();
-  const { user, isAuthenticated } = useContext(AuthContext);
+  const { user, isAuthenticated, socketConnected } = useContext(AuthContext);
   const userId = Number(user?.id);
   const isProfessional = user?.role === "PROFESSIONAL";
 
@@ -124,29 +122,21 @@ export default function ChatPage({ params }: { params: { chatId: string } }) {
   // Debounce para typingStop
   const emitTypingStopRef = useRef(
     debounce(() => {
-      if (isSocketReady()) {
+      if (socketConnected) {
         getSocket().emit("typingStop", { conversationId: chatId, userId });
       }
     }, 1000)
   );
 
   // ==================== SOCKET & MENSAGENS ====================
-  useEffect(() => {
-    if (!isAuthenticated || !userId) return;
-
-    if (!isSocketReady()) {
-      connectSocket(userId);
-      console.log("🔌 Conectando socket para usuário:", userId);
-    }
-  }, [isAuthenticated, userId]);
 
   useEffect(() => {
-    if (!chatId || !isAuthenticated || !userId) return;
+    if (!chatId || !socketConnected || !userId) return;
 
     let mounted = true;
 
     async function fetchAndJoin() {
-      if (!isSocketReady()) {
+      if (!socketConnected) {
         console.log("⏳ Socket ainda não está pronto, aguardando...");
         return false;
       }
@@ -190,15 +180,15 @@ export default function ChatPage({ params }: { params: { chatId: string } }) {
     return () => {
       mounted = false;
       clearInterval(checkInterval);
-      if (isSocketReady()) {
+      if (socketConnected) {
         console.log("👋 Saindo da conversa:", chatId);
         leaveConversation(chatId);
       }
     };
-  }, [chatId, isAuthenticated, userId]);
+  }, [chatId, socketConnected]);
 
   useEffect(() => {
-    if (!isAuthenticated || !chatId || !isSocketReady()) return;
+    if (!socketConnected) return;
 
     const handleNewMessage = (newMsg: Message) => {
       console.log("📩 Nova mensagem recebida:", newMsg);
@@ -218,7 +208,7 @@ export default function ChatPage({ params }: { params: { chatId: string } }) {
       console.log("🛑 Removendo ouvinte de mensagens");
       offMessageReceived(handleNewMessage);
     };
-  }, [chatId, isAuthenticated, isSocketReady()]);
+  }, [chatId, socketConnected]);
 
   // useEffect(() => {
   //   if (!messages.length) return;
@@ -233,12 +223,12 @@ export default function ChatPage({ params }: { params: { chatId: string } }) {
   // }, [messages]);
 
   useEffect(() => {
-    if (!isSocketReady() || !messages.length || !isAuthenticated) return;
+    if (!socketConnected || !messages.length || !isAuthenticated) return;
     const lastMsg = messages[messages.length - 1];
     if (lastMsg.conversationId === chatId && lastMsg.senderId !== userId) {
       markAsReadSocket(chatId, userId);
     }
-  }, [chatId, userId, isAuthenticated, messages]);
+  }, [chatId, socketConnected, messages]);
 
   useEffect(() => {
     const handleRead = (data: { conversationId: string; userId: number }) => {
@@ -253,15 +243,15 @@ export default function ChatPage({ params }: { params: { chatId: string } }) {
         })
       );
     };
-    if (isSocketReady() && isAuthenticated) {
+    if (socketConnected) {
       onMessagesMarkedAsRead(handleRead);
     }
     return () => {
-      if (isSocketReady()) {
+      if (socketConnected) {
         offMessagesMarkedAsRead(handleRead);
       }
     };
-  }, [chatId, isAuthenticated, isSocketReady()]);
+  }, [chatId, socketConnected]);
 
   useEffect(() => {
     return () => {
@@ -270,7 +260,7 @@ export default function ChatPage({ params }: { params: { chatId: string } }) {
   }, []);
 
   useEffect(() => {
-    if (!isSocketReady()) return;
+    if (!socketConnected) return;
     const handleTypingStart = (data: {
       userId: number;
       conversationId: string;
@@ -302,7 +292,7 @@ export default function ChatPage({ params }: { params: { chatId: string } }) {
 
   // ==================== FUNÇÕES DE CHAT ====================
   function handleSendMessage() {
-    if (!content.trim() || !isSocketReady() || !isAuthenticated) return;
+    if (!content.trim() || !socketConnected) return;
 
     sendMessageSocket(chatId, userId, content);
     getSocket().emit("typingStop", { conversationId: chatId, userId });
@@ -570,7 +560,7 @@ export default function ChatPage({ params }: { params: { chatId: string } }) {
               rows={1} // Start with 1 row, can auto-grow with CSS/JS if needed
               onKeyDown={(e) => {
                 // Emit typing start event
-                if (isSocketReady()) {
+                if (socketConnected) {
                   getSocket().emit("typingStart", {
                     conversationId: chatId,
                     userId,
@@ -589,7 +579,7 @@ export default function ChatPage({ params }: { params: { chatId: string } }) {
                 if (content.trim()) {
                   emitTypingStopRef.current();
                 } else {
-                  if (isSocketReady()) {
+                  if (socketConnected) {
                     getSocket().emit("typingStop", {
                       conversationId: chatId,
                       userId,
@@ -599,7 +589,7 @@ export default function ChatPage({ params }: { params: { chatId: string } }) {
               }}
               onBlur={() => {
                 // Stop typing if input loses focus
-                if (isSocketReady()) {
+                if (socketConnected) {
                   getSocket().emit("typingStop", {
                     conversationId: chatId,
                     userId,
@@ -609,7 +599,7 @@ export default function ChatPage({ params }: { params: { chatId: string } }) {
               onChange={(e) => {
                 setContent(e.target.value);
                 // Stop typing immediately if input becomes empty
-                if (!e.target.value.trim() && isSocketReady()) {
+                if (!e.target.value.trim() && socketConnected) {
                   getSocket().emit("typingStop", {
                     conversationId: chatId,
                     userId,

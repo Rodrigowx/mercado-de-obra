@@ -15,18 +15,19 @@ export class ChatService {
         content: true,
         conversationId: true,
         createdAt: true,
+        // Seleciona a conversa e os participantes necessários
         conversation: {
           select: {
             clientId: true,
             professionalId: true,
             client: {
               select: {
-                name: true,
+                name: true, // Tenta selecionar o nome do cliente
               },
             },
             professional: {
               select: {
-                name: true,
+                name: true, // Tenta selecionar o nome do profissional
               },
             },
           },
@@ -38,17 +39,27 @@ export class ChatService {
       return null;
     }
 
-    // Determinar quem é o remetente (client ou professional)
-    const senderName =
-      lastMessage.senderId === lastMessage.conversation.clientId
-        ? lastMessage.conversation.client.name
-        : lastMessage.senderId === lastMessage.conversation.professionalId
-          ? lastMessage.conversation.professional.name
-          : 'Desconhecido';
+    let senderName = 'Desconhecido'; // Fallback Padrão
 
+    // Verifica se os dados da conversa e participantes existem
+    if (lastMessage.conversation) {
+      if (lastMessage.senderId === lastMessage.conversation.clientId) {
+        // <<== USA ?. e ?? para segurança
+        senderName = lastMessage.conversation.client?.name ?? 'Cliente'; // Fallback se o nome for null/undefined
+      } else if (
+        lastMessage.senderId === lastMessage.conversation.professionalId
+      ) {
+        // <<== USA ?. e ?? para segurança
+        senderName =
+          lastMessage.conversation.professional?.name ?? 'Profissional'; // Fallback se o nome for null/undefined
+      }
+      // Se senderId não corresponder a nenhum, mantém 'Desconhecido'
+    }
+
+    // Retorna a mensagem original MAIS o senderName garantido (nunca undefined)
     return {
       ...lastMessage,
-      senderName,
+      senderName, // Agora sempre terá um valor string
     };
   }
 
