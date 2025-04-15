@@ -210,17 +210,14 @@ export default function ChatPage({ params }: { params: { chatId: string } }) {
     };
   }, [chatId, socketConnected]);
 
-  // useEffect(() => {
-  //   if (!messages.length) return;
-
-  //   // Always scroll to the bottom when messages update
-  //   setTimeout(() => {
-  //     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  //   }, 300);
-
-  //   // Update the last message reference
-  //   lastMessageRef.current = messages[messages.length - 1];
-  // }, [messages]);
+  useEffect(() => {
+    if (!messages.length) return;
+    const lastMsg = messages[messages.length - 1];
+    if (lastMessageRef.current?.id !== lastMsg.id) {
+      messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+      lastMessageRef.current = lastMsg;
+    }
+  }, [messages]);
 
   useEffect(() => {
     if (!socketConnected || !messages.length || !isAuthenticated) return;
@@ -441,17 +438,12 @@ export default function ChatPage({ params }: { params: { chatId: string } }) {
   //                              RENDER
   // =========================================================================
   return (
-    <div className="max-w-[1400px] mx-auto px-4 md:px-8 py-4 bg-gray-100 dark:bg-gray-900 h-screen flex flex-col transition-colors rounded-md shadow-lg animate__animated animate__fadeIn">
-      {/* Header Section */}
+    <div className="max-w-[1400px] mx-auto px-4 md:px-8 py-4 bg-gray-100 dark:bg-gray-900 flex flex-col transition-colors rounded-md shadow-lg animate__animated animate__fadeIn">
+      {/* Header */}
       <div className="flex items-center justify-between mb-3 pb-3 border-b dark:border-gray-700">
-        <div className="flex items-center space-x-2">
-          {/* Display Name of the other chat participant */}
-          <h1 className="text-xl md:text-2xl font-bold text-gray-800 dark:text-gray-100">
-            {isProfessional ? clientName : professionalName || "Carregando..."}
-          </h1>
-          {/* Optional: Add online status indicator here */}
-        </div>
-        {/* Close Conversation Button */}
+        <h1 className="text-xl md:text-2xl font-bold text-gray-800 dark:text-gray-100">
+          {isProfessional ? clientName : professionalName || "Carregando..."}
+        </h1>
         <button
           onClick={handleCloseConversation}
           className="bg-red-500 text-white px-3 py-2 rounded-md hover:bg-red-600 transition-colors text-sm flex items-center space-x-1"
@@ -462,182 +454,158 @@ export default function ChatPage({ params }: { params: { chatId: string } }) {
         </button>
       </div>
 
-      {/* Main Content Area (Chat + Budget Panel) */}
-      <div className="flex-1 flex flex-col md:flex-row space-y-4 md:space-y-0 md:space-x-4 overflow-hidden animate__animated animate__fadeInUp">
+      {/* Main */}
+      <div className="flex flex-col h-screen md:flex-row space-y-4 md:space-y-0 md:space-x-4 animate__animated animate__fadeInUp">
         {/* Chat Column */}
-        <div className="md:flex-1 bg-white dark:bg-gray-800 rounded-lg border border-gray-300 dark:border-gray-700 flex flex-col overflow-hidden shadow-inner h-full max-h-[calc(100vh-150px)] md:max-h-full">
-          {" "}
-          {/* Adjusted max-h */}
-          {/* Message List Area */}
-          <div className="flex-1 flex flex-col p-4 overflow-y-auto space-y-4 justify-end">
-            {" "}
-            {/* Vertical spacing */}
+        <div className="flex flex-col w-full ">
+          <div className="w-full overflow-hidden hover:overflow-y-auto bg-white dark:bg-gray-800 rounded-lg border border-gray-300 dark:border-gray-700 flex flex-col shadow-inner">
+            {/* Messages */}
             {messages.map((msg, idx) => {
               const isMe = msg.senderId === userId;
               return (
                 <div
-                  key={msg.id ?? `msg-${idx}`} // Prefer message ID for key
-                  className={`flex ${isMe ? "justify-end" : "justify-start"}`} // Align message bubble
+                  key={msg.id ?? `msg-${idx}`}
+                  className=" w-full flex flex-col p-4 justify-end"
                 >
                   <div
-                    className={`max-w-[75%] lg:max-w-[65%] px-1 ${
-                      isMe ? "" : ""
-                    }`}
+                    className={`flex ${isMe ? "justify-end" : "justify-start"}`}
                   >
-                    {" "}
-                    {/* Bubble container */}
-                    {/* Show sender name only for messages from others */}
-                    {!isMe && (
-                      <p className="text-xs font-semibold mb-1 text-gray-600 dark:text-gray-400">
-                        {getSenderName(msg)}
-                      </p>
-                    )}
-                    {/* Message Bubble */}
-                    <div
-                      className={`p-3 rounded-lg shadow-sm transition-all duration-300 ${
-                        isMe
-                          ? "bg-orange-500 text-white" // Sent by me
-                          : "bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-100" // Received
-                      } relative`}
-                    >
-                      {/* Message Content */}
-                      <p className="whitespace-pre-wrap text-sm break-words">
-                        {msg.content}
-                      </p>
-                      {/* Timestamp and Read Status */}
+                    <div className="max-w-[75%] lg:max-w-[65%] px-1">
+                      {!isMe && (
+                        <p className="text-xs font-semibold mb-1 text-gray-600 dark:text-gray-400">
+                          {getSenderName(msg)}
+                        </p>
+                      )}
                       <div
-                        className={`text-xs mt-1.5 flex items-center space-x-1.5 ${
-                          isMe ? "justify-end" : "justify-start"
-                        }`}
+                        className={`p-3 rounded-lg shadow-sm transition-all duration-300 ${
+                          isMe
+                            ? "bg-orange-500 text-white"
+                            : "bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-100"
+                        } relative`}
                       >
-                        {isMe && getReadIcon(msg)}{" "}
-                        {/* Read icon for own messages */}
-                        <span
-                          className={`opacity-80 ${
-                            isMe
-                              ? "text-orange-100 dark:text-orange-200"
-                              : "text-gray-500 dark:text-gray-400"
+                        <p className="whitespace-pre-wrap text-sm break-words">
+                          {msg.content}
+                        </p>
+                        <div
+                          className={`text-xs mt-1.5 flex items-center space-x-1.5 ${
+                            isMe ? "justify-end" : "justify-start"
                           }`}
                         >
-                          {/* Format timestamp */}
-                          {msg.createdAt
-                            ? new Date(msg.createdAt).toLocaleTimeString([], {
-                                hour: "2-digit",
-                                minute: "2-digit",
-                              })
-                            : ""}
-                        </span>
+                          {isMe && getReadIcon(msg)}
+                          <span
+                            className={`opacity-80 ${
+                              isMe
+                                ? "text-orange-100 dark:text-orange-200"
+                                : "text-gray-500 dark:text-gray-400"
+                            }`}
+                          >
+                            {msg.createdAt
+                              ? new Date(msg.createdAt).toLocaleTimeString([], {
+                                  day: "2-digit",
+                                  month: "2-digit",
+                                  hour: "2-digit",
+                                  minute: "2-digit",
+                                })
+                              : ""}
+                          </span>
+                        </div>
                       </div>
                     </div>
                   </div>
+                  <div ref={messagesEndRef} />
                 </div>
               );
             })}
-            {/* Scroll Anchor */}
-            <div ref={messagesEndRef} />
           </div>
-          {/* Typing Indicator Area */}
-          {Object.keys(typingUsers).length > 0 && (
-            <div className="flex items-center text-sm text-gray-500 dark:text-gray-400 italic px-4 py-2 border-t dark:border-gray-700 shrink-0">
-              {" "}
-              {/* shrink-0 prevents collapse */}
-              <TiMessageTyping
-                size={20}
-                className="mr-2 animate-pulse text-orange-500"
-              />
-              {Object.values(typingUsers).join(", ")} está digitando...
+          <div className="mb-2"></div>
+          {/* Input */}
+          <div className="border-t flex-col border-gray-300 dark:border-gray-700 flex bg-gray-50 dark:bg-gray-800 shrink-0">
+            <div className="flex items-start mt-2 w-full">
+              {/* Typing Indicator */}
+              {Object.keys(typingUsers).length > 0 && (
+                <div className="flex pl-2 items-center justify-center text-sm text-gray-500 dark:text-gray-400 italic  shrink-0">
+                  <TiMessageTyping
+                    size={20}
+                    className="mr-2 animate-pulse text-orange-500"
+                  />
+                  {Object.values(typingUsers).join(", ")} está digitando...
+                </div>
+              )}
+              <div ref={messagesEndRef} />
             </div>
-          )}
-          {/* Message Input Area */}
-          <div className="border-t border-gray-300 dark:border-gray-700 p-3 flex items-center space-x-2 bg-gray-50 dark:bg-gray-800 shrink-0">
-            {" "}
-            {/* Input area fixed at bottom */}
-            {/* Text Input */}
-            <textarea
-              className="flex-1 h-12 min-h-[48px] max-h-24 resize-none bg-gray-100 dark:bg-gray-700 p-2 rounded-md border border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-1 focus:ring-orange-500 focus:border-orange-500 text-gray-700 dark:text-gray-200 text-sm"
-              placeholder="Digite sua mensagem..."
-              value={content}
-              rows={1} // Start with 1 row, can auto-grow with CSS/JS if needed
-              onKeyDown={(e) => {
-                // Emit typing start event
-                if (socketConnected) {
-                  getSocket().emit("typingStart", {
-                    conversationId: chatId,
-                    userId,
-                  });
-                }
-                // Send message on Enter (unless Shift is pressed)
-                if (e.key === "Enter" && !e.shiftKey) {
-                  e.preventDefault();
-                  handleSendMessage();
-                }
-                // Reset typing stop timer
-                emitTypingStopRef.current.cancel();
-              }}
-              onKeyUp={() => {
-                // Start typing stop timer only if input has content
-                if (content.trim()) {
-                  emitTypingStopRef.current();
-                } else {
-                  if (socketConnected) {
+            <div className="flex items-center justify-between w-full px-2 py-2 gap-2">
+              <textarea
+                className="flex-1 h-12 min-h-[48px] max-h-24 resize-none bg-gray-100 dark:bg-gray-700 p-2 rounded-md border border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-1 focus:ring-orange-500 focus:border-orange-500 text-gray-700 dark:text-gray-200 text-sm"
+                placeholder="Digite sua mensagem..."
+                value={content}
+                rows={1}
+                onKeyDown={(e) => {
+                  if (socketConnected)
+                    getSocket().emit("typingStart", {
+                      conversationId: chatId,
+                      userId,
+                    });
+                  if (e.key === "Enter" && !e.shiftKey) {
+                    e.preventDefault();
+                    handleSendMessage();
+                  }
+                  emitTypingStopRef.current.cancel();
+                }}
+                onKeyUp={() => {
+                  if (content.trim()) {
+                    emitTypingStopRef.current();
+                  } else if (socketConnected) {
                     getSocket().emit("typingStop", {
                       conversationId: chatId,
                       userId,
                     });
                   }
-                } // Stop immediately if empty
-              }}
-              onBlur={() => {
-                // Stop typing if input loses focus
-                if (socketConnected) {
-                  getSocket().emit("typingStop", {
-                    conversationId: chatId,
-                    userId,
-                  });
-                }
-              }}
-              onChange={(e) => {
-                setContent(e.target.value);
-                // Stop typing immediately if input becomes empty
-                if (!e.target.value.trim() && socketConnected) {
-                  getSocket().emit("typingStop", {
-                    conversationId: chatId,
-                    userId,
-                  });
-                }
-              }}
-            />
-            {/* Send Button */}
-            <button
-              onClick={handleSendMessage}
-              disabled={!content.trim()} // Disable if input is empty
-              className="bg-orange-500 text-white p-2 rounded-md hover:bg-orange-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shrink-0"
-              title="Enviar Mensagem"
-            >
-              <IoSend size={20} />
-            </button>
-            {/* Budget Panel Toggle Button (for Professionals) */}
-            {isProfessional && (
+                }}
+                onBlur={() => {
+                  if (socketConnected)
+                    getSocket().emit("typingStop", {
+                      conversationId: chatId,
+                      userId,
+                    });
+                }}
+                onChange={(e) => {
+                  setContent(e.target.value);
+                  if (!e.target.value.trim() && socketConnected) {
+                    getSocket().emit("typingStop", {
+                      conversationId: chatId,
+                      userId,
+                    });
+                  }
+                }}
+              />
               <button
-                className={`text-white px-3 py-2 rounded-md hover:bg-orange-700 transition-colors flex items-center space-x-1 text-sm shrink-0 ${
-                  showBudgetPanel ? "bg-orange-600" : "bg-orange-500"
-                }`}
-                onClick={() => setShowBudgetPanel(!showBudgetPanel)}
-                title={
-                  showBudgetPanel
-                    ? "Fechar Painel de Orçamento"
-                    : "Abrir Painel de Orçamento"
-                }
+                onClick={handleSendMessage}
+                disabled={!content.trim()}
+                className="bg-orange-500 text-white p-2 rounded-md hover:bg-orange-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shrink-0"
+                title="Enviar Mensagem"
               >
-                <FaEdit />
-                {/* Optional: Add text label like "Orçamento" */}
-                {/* <span className="hidden sm:inline">{showBudgetPanel ? "Fechar" : "Orçamento"}</span> */}
+                <IoSend size={20} />
               </button>
-            )}
+              {isProfessional && (
+                <button
+                  className={`text-white px-3 py-2 rounded-md hover:bg-orange-700 transition-colors flex items-center space-x-1 text-sm shrink-0 ${
+                    showBudgetPanel ? "bg-orange-600" : "bg-orange-500"
+                  }`}
+                  onClick={() => setShowBudgetPanel(!showBudgetPanel)}
+                  title={
+                    showBudgetPanel
+                      ? "Fechar Painel de Orçamento"
+                      : "Abrir Painel de Orçamento"
+                  }
+                >
+                  <FaEdit />
+                </button>
+              )}
+            </div>
           </div>
         </div>
 
-        {/* SIDE PANEL DO BUDGET */}
+        {/* Budget Panel */}
         {isProfessional && showBudgetPanel && (
           <div className="w-full md:w-96 bg-white dark:bg-gray-800 rounded-lg border border-gray-300 dark:border-gray-700 p-4 flex flex-col animate__animated animate__fadeInRight">
             <h2 className="text-lg font-bold mb-3 text-center text-gray-700 dark:text-gray-200">
@@ -656,10 +624,9 @@ export default function ChatPage({ params }: { params: { chatId: string } }) {
                 <select
                   className="w-full p-2 border rounded bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-100"
                   value={selectedNeedId ?? ""}
-                  onChange={async (e) => {
-                    const needId = Number(e.target.value);
-                    await handleSelectNeed(needId);
-                  }}
+                  onChange={async (e) =>
+                    await handleSelectNeed(Number(e.target.value))
+                  }
                 >
                   <option value="">-- Escolha uma Need --</option>
                   {needsData?.needsByChatId?.map((nd: Need) => (
@@ -671,25 +638,21 @@ export default function ChatPage({ params }: { params: { chatId: string } }) {
               </div>
             )}
 
-            {/* Exibe o total calculado a partir dos valores individuais dos serviços */}
-            <div className="mb-4">
-              <div className="flex flex-row justify-between items-center">
-                <label className="block text-sm mb-1 font-medium text-gray-700 dark:text-gray-300">
-                  Total do Valor dos Serviços
-                </label>
-                <p className="mt-1 text-sm text-gray-600 dark:text-gray-400 italic">
-                  R${" "}
-                  {budgetServices
-                    .reduce(
-                      (acc, cur) => acc + (Number(cur.serviceValue) || 0),
-                      0
-                    )
-                    .toFixed(2)}
-                </p>
-              </div>
+            <div className="mb-4 flex justify-between items-center">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                Total do Valor dos Serviços
+              </label>
+              <p className="text-sm text-gray-600 dark:text-gray-400 italic">
+                R$
+                {budgetServices
+                  .reduce(
+                    (acc, cur) => acc + (Number(cur.serviceValue) || 0),
+                    0
+                  )
+                  .toFixed(2)}
+              </p>
             </div>
 
-            {/* Observações */}
             <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
               Observações
             </label>
@@ -700,7 +663,7 @@ export default function ChatPage({ params }: { params: { chatId: string } }) {
               placeholder="Adicione observações aqui..."
             />
 
-            {/* Seção de Serviços */}
+            {/* Serviços */}
             <div className="relative group mb-4">
               <div className="flex justify-between items-center">
                 <span className="font-semibold text-gray-700 dark:text-gray-300">
@@ -718,33 +681,25 @@ export default function ChatPage({ params }: { params: { chatId: string } }) {
             <div className="flex-1 overflow-y-auto border-t pt-2">
               {budgetServices.map((bs, idx) => (
                 <div key={idx} className="mb-3 border-b pb-2">
-                  {/* Tarefa */}
                   <label className="text-xs font-medium text-gray-700 dark:text-gray-300">
                     Atividade
                   </label>
                   <input
                     type="text"
-                    placeholder="Ex: Pintar parede..."
                     className="w-full mt-1 mb-2 p-1 border rounded bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-100"
                     value={bs.task}
+                    placeholder="Ex: Pintar parede..."
                     onChange={(e) =>
                       setBudgetServices((prev) =>
                         prev.map((item, i) =>
-                          i === idx
-                            ? {
-                                ...item,
-                                task: e.target.value,
-                                serviceValue: Number(item.serviceValue),
-                              }
-                            : item
+                          i === idx ? { ...item, task: e.target.value } : item
                         )
                       )
                     }
                   />
 
-                  {/* Quantidade, Unidade e Valor do Serviço */}
                   <div className="grid grid-cols-2 gap-4 mb-2">
-                    <div className="flex flex-col">
+                    <div>
                       <label className="text-xs font-medium text-gray-700 dark:text-gray-300">
                         Quantidade
                       </label>
@@ -764,7 +719,7 @@ export default function ChatPage({ params }: { params: { chatId: string } }) {
                         }
                       />
                     </div>
-                    <div className="flex flex-col">
+                    <div>
                       <label className="text-xs font-medium text-gray-700 dark:text-gray-300">
                         Unidade de Medida
                       </label>
@@ -794,33 +749,26 @@ export default function ChatPage({ params }: { params: { chatId: string } }) {
                     </div>
                   </div>
 
-                  {/* Novo campo: Valor do Serviço */}
-                  <div className="mb-2">
-                    <label className="text-xs font-medium text-gray-700 dark:text-gray-300">
-                      Valor do Serviço
-                    </label>
-                    <input
-                      type="number"
-                      step="0.01"
-                      className="w-full p-1 border rounded bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-100"
-                      placeholder="Ex: 150.00"
-                      value={bs.serviceValue}
-                      onChange={(e) =>
-                        setBudgetServices((prev) =>
-                          prev.map((item, i) =>
-                            i === idx
-                              ? {
-                                  ...item,
-                                  serviceValue: Number(e.target.value),
-                                }
-                              : item
-                          )
+                  <label className="text-xs font-medium text-gray-700 dark:text-gray-300">
+                    Valor do Serviço
+                  </label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    className="w-full p-1 border rounded bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-100 mb-2"
+                    placeholder="Ex: 150.00"
+                    value={bs.serviceValue}
+                    onChange={(e) =>
+                      setBudgetServices((prev) =>
+                        prev.map((item, i) =>
+                          i === idx
+                            ? { ...item, serviceValue: Number(e.target.value) }
+                            : item
                         )
-                      }
-                    />
-                  </div>
+                      )
+                    }
+                  />
 
-                  {/* Botão Remover */}
                   <div className="flex justify-end">
                     <button
                       onClick={() => handleRemoveServiceItem(idx)}
@@ -833,10 +781,9 @@ export default function ChatPage({ params }: { params: { chatId: string } }) {
               ))}
             </div>
 
-            {/* Botão Salvar */}
             <button
               onClick={handleSaveBudget}
-              className="mt-4 w-full py-2 bg-orange-600 text-white rounded justify-self-end hover:bg-orange-700 transition-colors"
+              className="mt-4 w-full py-2 bg-orange-600 text-white rounded hover:bg-orange-700 transition-colors"
             >
               Salvar
             </button>
