@@ -83,7 +83,7 @@ const SubMenu: React.FC<SubMenuProps> = ({ isSearchVisible }) => {
         {services.map((service: any) => (
           <div
             key={service.id}
-            className="flex flex-col items-center justify-center flex-shrink-0 w-20 text-center"
+            className="flex flex-col items-center justify-center shrink-0 w-20 text-center"
           >
             <div className={`text-base ${isSearchVisible ? "text-sm" : "text-sm"}`}>
               {service.icon || <FaHammer />}

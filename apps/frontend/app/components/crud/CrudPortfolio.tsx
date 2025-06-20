@@ -417,7 +417,7 @@ const CrudPortfolio: React.FC<CrudPortfolioProps> = ({ professionalId }) => {
 
                 {/* Indicador de Seleção */}
                 {selectedPortfolio?.id === portfolio.id && (
-                  <div className="absolute inset-0 bg-orange-100 bg-opacity-50 pointer-events-none animate-fade-in"></div>
+                  <div className="absolute inset-0 bg-orange-100/20 pointer-events-none animate-fade-in"></div>
                 )}
               </div>
             );
@@ -467,7 +467,7 @@ const CrudPortfolio: React.FC<CrudPortfolioProps> = ({ professionalId }) => {
                 type="text"
                 name="title"
                 defaultValue={portfolioToEdit.title}
-                className="w-full border border-gray-300 dark:border-gray-700 rounded-lg p-2 bg-gray-50 dark:bg-gray-700 text-gray-800 dark:text-gray-200 transition focus:outline-none"
+                className="w-full border border-gray-300 dark:border-gray-700 rounded-lg p-2 bg-gray-50 dark:bg-gray-700 text-gray-800 dark:text-gray-200 transition focus:outline-hidden"
                 required
               />
             </div>
@@ -479,7 +479,7 @@ const CrudPortfolio: React.FC<CrudPortfolioProps> = ({ professionalId }) => {
               <textarea
                 name="description"
                 defaultValue={portfolioToEdit.description}
-                className="w-full border border-gray-300 dark:border-gray-700 rounded-lg p-2 bg-gray-50 dark:bg-gray-700 text-gray-800 dark:text-gray-200 transition focus:outline-none"
+                className="w-full border border-gray-300 dark:border-gray-700 rounded-lg p-2 bg-gray-50 dark:bg-gray-700 text-gray-800 dark:text-gray-200 transition focus:outline-hidden"
                 required
               ></textarea>
             </div>
@@ -545,7 +545,7 @@ const CrudPortfolio: React.FC<CrudPortfolioProps> = ({ professionalId }) => {
               <select
                 value={selectedService || ""}
                 onChange={(e) => setSelectedService(Number(e.target.value))}
-                className="w-full border border-gray-300 dark:border-gray-700 rounded-lg shadow-sm p-2 bg-gray-50 dark:bg-gray-700 text-gray-800 dark:text-gray-200 transition"
+                className="w-full border border-gray-300 dark:border-gray-700 rounded-lg shadow-xs p-2 bg-gray-50 dark:bg-gray-700 text-gray-800 dark:text-gray-200 transition"
                 required
               >
                 <option value="" disabled>

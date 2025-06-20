@@ -1,0 +1,4 @@
+-- AlterTable
+ALTER TABLE "Budget" ALTER COLUMN "paymentDates" SET DATA TYPE TEXT[],
+ALTER COLUMN "plannedStartDate" SET DATA TYPE TEXT,
+ALTER COLUMN "plannedEndDate" SET DATA TYPE TEXT;

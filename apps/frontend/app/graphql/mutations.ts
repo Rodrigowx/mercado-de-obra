@@ -32,12 +32,28 @@ export const CREATE_BUDGET = gql`
       serviceDetails
       createdAt
       updatedAt
+      obraTitle
+      obraAddress
+      obraRules
+      precisaAjudante
+      valorDiariaAjudante
+      qtdAjudantes
+      valorAlimentacao
+      valorTransporte
+      margemLucro
+      plannedStartDate
+      plannedEndDate
+      paymentDates
+      paymentFrequency
+      initialPaymentDate
       budgetServices {
         id
         unitOfMeasurementId
         task
         quantity
         serviceValue
+        needsMaterials
+        materialsJson
         createdAt
         updatedAt
       }
@@ -74,7 +90,6 @@ export const DELETE_BUDGET = gql`
   }
 `;
 
-
 export const UPDATE_BUDGET = gql`
   mutation UpdateBudget($budgetId: Int!, $input: UpdateBudgetInput!) {
     updateBudget(id: $budgetId, input: $input) {
@@ -92,20 +107,34 @@ export const UPDATE_BUDGET = gql`
       serviceDetails
       createdAt
       updatedAt
+      obraTitle
+      obraAddress
+      obraRules
+      precisaAjudante
+      valorDiariaAjudante
+      qtdAjudantes
+      valorAlimentacao
+      valorTransporte
+      margemLucro
+      plannedStartDate
+      plannedEndDate
+      paymentDates
+      paymentFrequency
+      initialPaymentDate
       budgetServices {
         id
         unitOfMeasurementId
         task
         quantity
         serviceValue
+        needsMaterials
+        materialsJson
         createdAt
         updatedAt
       }
     }
   }
 `;
-
-
 
 export const UPDATE_BUDGET_STATUS = gql`
   mutation UpdateBudgetStatus($id: Int!, $status: String!) {
@@ -116,7 +145,6 @@ export const UPDATE_BUDGET_STATUS = gql`
     }
   }
 `;
-
 
 export const UPDATE_CHAT_LIST = gql`
   mutation UpdateChatList($userId: Int!, $chatId: String!) {

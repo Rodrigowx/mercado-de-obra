@@ -99,7 +99,7 @@ export default function ProfessionalProfilePage({
 
   if (loading) {
     return (
-      <div className="flex justify-center items-start mt-10 h-screen">
+      <div className="flex justify-center items-start mt-10 h-dvh">
         {/* Spinner ou algo de carregando */}
       </div>
     );
@@ -240,7 +240,7 @@ export default function ProfessionalProfilePage({
   );
 
   return (
-    <section className="container mx-auto px-4 md:px-16">
+    <section className="container mx-auto px-4 md:px-16 h-dvh">
       <div className="flex flex-row justify-between items-baseline">
         {/* Nome / Cabeçalho */}
         <h1 className="text-xs sm:text-xl md:text-2xl font-bold text-gray-800 dark:text-gray-200">
@@ -331,7 +331,7 @@ export default function ProfessionalProfilePage({
                           }
                           alt={`Miniatura de ${portfolio.title}`}
                           fill
-                          className="object-cover blur-sm scale-110 inset-0"
+                          className="object-cover blur-xs scale-110 inset-0"
                           quality={25}
                           sizes="(max-width: 768px) 100vw, 300px"
                         />
@@ -392,7 +392,7 @@ export default function ProfessionalProfilePage({
             <div className="flex flex-col gap-4 w-full md:w-1/3 lg:w-1/4 xl:w-1/5">
               {/* Foto / Nome / Rating */}
               <div className="flex px-5 py-3 gap-4 rounded-lg shadow-md dark:bg-zinc-600 bg-white transition-all duration-300 items-start justify-stretch">
-                <div className="relative flex-shrink-0 w-16 h-16">
+                <div className="relative shrink-0 w-16 h-16">
                   <Image
                     src={professional.profileImage || "/default-image.jpg"}
                     alt={`Foto de perfil de ${professional.user.name}`}
@@ -431,7 +431,7 @@ export default function ProfessionalProfilePage({
                   return (
                     <div
                       key={portfolio.id}
-                      className="flex pr-1 pl-2 rounded bg-primary shadow-md hover:translate-y-1 transition-transform justify-center items-center gap-1"
+                      className="flex pr-1 pl-2 rounded-sm bg-primary shadow-md hover:translate-y-1 transition-transform justify-center items-center gap-1"
                     >
                       <span className="text-lg">{service?.icon}</span>
                       <span className="text-base text-white">

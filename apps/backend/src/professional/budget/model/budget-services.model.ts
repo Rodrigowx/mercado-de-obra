@@ -1,5 +1,6 @@
 import { ObjectType, Field, Int, Float } from '@nestjs/graphql';
 import { UnitOfMeasurement } from '../unit/model/unit.model';
+import { GraphQLJSON } from 'graphql-type-json';
 
 @ObjectType()
 export class BudgetService {
@@ -29,4 +30,10 @@ export class BudgetService {
 
   @Field({ nullable: true })
   updatedAt?: Date;
+
+  @Field(() => Boolean, { nullable: true })
+  needsMaterials?: boolean;
+
+  @Field(() => GraphQLJSON, { nullable: true })
+  materialsJson?: any;
 }

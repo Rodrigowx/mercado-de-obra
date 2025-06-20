@@ -160,6 +160,18 @@ model Budget {
   serviceDetails          String?
   plannedStartDate        String?
   plannedEndDate          String?
+  paymentDates            String[]
+  paymentFrequency        String?
+  initialPaymentDate      String?
+  obraTitle               String?
+  obraAddress             String?
+  obraRules               String[]
+  precisaAjudante         Boolean?        @default(false)
+  valorDiariaAjudante     Float?
+  qtdAjudantes            Int?
+  valorAlimentacao        Float?
+  valorTransporte         Float?
+  margemLucro             Float?
   budgetServices          BudgetService[]
   createdAt               DateTime        @default(now())
   updatedAt               DateTime        @default(now())
@@ -205,6 +217,8 @@ model BudgetService {
   unitOfMeasurement   UnitOfMeasurement? @relation(fields: [unitOfMeasurementId], references: [id], onDelete: Cascade)
   task                String
   quantity            Float
+  needsMaterials      Boolean?           @default(false)
+  materialsJson       Json?
   createdAt           DateTime           @default(now())
   updatedAt           DateTime           @default(now())
   Service             Service?           @relation(fields: [serviceId], references: [id])

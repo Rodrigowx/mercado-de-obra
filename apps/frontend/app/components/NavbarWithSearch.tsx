@@ -74,7 +74,7 @@ export default function NavbarWithSearch() {
   };
 
   return (
-    <div className="sticky w-full top-0 z-50 bg-white dark:bg-darkBg shadow-md transition-all duration-300 ease-in-out">
+    <div className="sticky w-full top-0 z-50 bg-white dark:bg-neutral-800 shadow-md transition-all duration-300 ease-in-out">
       <nav
         className={`relative px-6 flex items-center justify-between transition-all duration-300 ease-in-out ${
           isProfilePage || isChatPage
@@ -111,7 +111,7 @@ export default function NavbarWithSearch() {
             id="search-input"
             type="text"
             placeholder="Buscar serviços e profissionais"
-            className="flex-grow placeholder:text-ellipsis placeholder:overflow-hidden placeholder:whitespace-nowrap bg-transparent outline-none text-gray-600 dark:text-gray-200 px-2 placeholder-gray-500 dark:placeholder-gray-400"
+            className="grow placeholder:text-ellipsis placeholder:overflow-hidden placeholder:whitespace-nowrap bg-transparent outline-hidden text-gray-600 dark:text-gray-200 px-2 placeholder-gray-500 dark:placeholder-gray-400"
           />
           <button className="flex items-center justify-center bg-primary text-white w-8 h-8 rounded-full">
             <FaSearch className="text-base" />
@@ -125,7 +125,7 @@ export default function NavbarWithSearch() {
           {/* Botão de tema (dia/noite) */}
           <button
             onClick={toggleTheme}
-            className="shadow-md bg-gray-200 dark:bg-secondary text-gray-800 dark:text-gray-200 px-2 py-1 rounded-full focus:outline-none text-lg"
+            className="shadow-md bg-gray-200 dark:bg-secondary text-gray-800 dark:text-gray-200 px-2 py-1 rounded-full focus:outline-hidden text-lg"
           >
             {theme === "dark" ? "☀️" : "🌘"}
           </button>

@@ -33,7 +33,7 @@ export default function RootLayout({
       </head>
       <body
         suppressHydrationWarning
-        className="bg-gray-100 font-inter dark:bg-darkBg text-gray-900 dark:text-tertiary"
+        className="bg-gray-100 font-inter dark:bg-default text-gray-900 dark:text-tertiary"
       >
         <ApolloClientProvider>
           <AuthProvider>
@@ -42,8 +42,10 @@ export default function RootLayout({
                 <UnitsProvider>
                   <RouteChangeSpinner />
                   <NavbarWithSearch />
-                  <main className="min-h-screen my-4">{children}</main>
-                  <Footer />
+                  <div className="flex flex-col justify-between gap-0 h-dvh">
+                    <main className="my-3">{children}</main>
+                    <Footer />
+                  </div>
                 </UnitsProvider>
               </PageProvider>
             </ServicesProvider>

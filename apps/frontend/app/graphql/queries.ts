@@ -61,6 +61,20 @@ export const BUDGETS_BY_PROFESSIONAL = gql`
       status
       totalCost
       createdAt
+      obraTitle
+      obraAddress
+      obraRules
+      precisaAjudante
+      valorDiariaAjudante
+      qtdAjudantes
+      valorAlimentacao
+      valorTransporte
+      margemLucro
+      plannedStartDate
+      plannedEndDate
+      paymentDates
+      paymentFrequency
+      initialPaymentDate
       need {
         id
         title
@@ -78,6 +92,8 @@ export const BUDGETS_BY_PROFESSIONAL = gql`
         quantity
         unitOfMeasurementId
         serviceValue
+        needsMaterials
+        materialsJson
         unitOfMeasurement {
           code
           description
@@ -86,7 +102,6 @@ export const BUDGETS_BY_PROFESSIONAL = gql`
     }
   }
 `;
-
 
 export const BUDGET_BY_NEED_ID = gql`
   query BudgetByNeedId($needId: Int!) {
@@ -98,19 +113,34 @@ export const BUDGET_BY_NEED_ID = gql`
       createdAt
       updatedAt
       totalCost
+      obraTitle
+      obraAddress
+      obraRules
+      precisaAjudante
+      valorDiariaAjudante
+      qtdAjudantes
+      valorAlimentacao
+      valorTransporte
+      margemLucro
+      plannedStartDate
+      plannedEndDate
+      paymentDates
+      paymentFrequency
+      initialPaymentDate
       budgetServices {
         id
         unitOfMeasurementId
         task
         quantity
         serviceValue
+        needsMaterials
+        materialsJson
         createdAt
         updatedAt
       }
     }
   }
 `;
-
 
 export const NEED_BY_CHAT_ID = gql`
   query NeedByChatId($chatId: String!) {

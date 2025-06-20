@@ -79,7 +79,7 @@ const UserMenu: React.FC = () => {
     <div className="relative" ref={menuRef}>
       <button
         onClick={toggleMenu}
-        className="flex items-center justify-between w-auto h-10 bg-gray-200 dark:bg-neutral-800 rounded-full shadow-md px-2 py-1 focus:outline-none hover:bg-gray-300 dark:hover:bg-gray-600"
+        className="flex items-center justify-between w-auto h-10 bg-gray-200 dark:bg-neutral-800 rounded-full shadow-md px-2 py-1 focus:outline-hidden hover:bg-gray-300 dark:hover:bg-gray-600"
       >
         <FaBars className="pr-1 text-lg" />
         {getUserIcon()}

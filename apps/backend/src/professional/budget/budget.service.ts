@@ -9,14 +9,15 @@ export class BudgetService {
   constructor(private prisma: PrismaService) {}
 
   async createBudget(input: CreateBudgetInput) {
-    const { needId, clientId, professionalId, budgetServices, description, totalCost } = input;
+    const {
+      needId, clientId, professionalId, budgetServices, ...rest
+    } = input;
     return this.prisma.budget.create({
       data: {
         needId,
         clientId,
         professionalId,
-        description,
-        totalCost,
+        ...rest,
         ...(budgetServices && {
           budgetServices: {
             create: budgetServices.map((bs) => ({
@@ -24,17 +25,29 @@ export class BudgetService {
               task: bs.task,
               serviceValue: bs.serviceValue,
               quantity: bs.quantity,
+              needsMaterials: bs.needsMaterials,
+              materialsJson: bs.materialsJson || [],
             })),
           },
         }),
       },
       include: {
-        budgetServices: { include: { unitOfMeasurement: true } },
+        budgetServices: {
+          include: {
+            unitOfMeasurement: true,
+          },
+        },
         need: true,
         professional: true,
         client: true,
       },
-    });
+    }).then((budget) => ({
+      ...budget,
+      budgetServices: budget.budgetServices.map((svc) => ({
+        ...svc,
+        materialsJson: svc.materialsJson || [],
+      })),
+    }));
   }
 
   async getBudgetsByChatId(chatId: string) {
@@ -52,9 +65,7 @@ export class BudgetService {
     const { budgetServices, ...data } = input;
 
     if (budgetServices) {
-      await this.prisma.budgetService.deleteMany({
-        where: { budgetId: id },
-      });
+      await this.prisma.budgetService.deleteMany({ where: { budgetId: id } });
     }
 
     return this.prisma.budget.update({
@@ -68,17 +79,29 @@ export class BudgetService {
               task: bs.task,
               quantity: bs.quantity,
               serviceValue: bs.serviceValue,
+              needsMaterials: bs.needsMaterials,
+              materialsJson: bs.materialsJson || [],
             })),
           },
         }),
       },
       include: {
-        budgetServices: { include: { unitOfMeasurement: true } },
+        budgetServices: {
+          include: {
+            unitOfMeasurement: true,
+          },
+        },
         need: true,
         professional: true,
         client: true,
       },
-    });
+    }).then((budget) => ({
+      ...budget,
+      budgetServices: budget.budgetServices.map((svc) => ({
+        ...svc,
+        materialsJson: svc.materialsJson || [],
+      })),
+    }));
   }
 
   async getBudgetById(id: number) {

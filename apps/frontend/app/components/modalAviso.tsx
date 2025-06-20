@@ -20,7 +20,7 @@ const Modal: React.FC<ModalProps> = ({
   children,
 }) => {
   return (
-    <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50 transition-opacity duration-300">
+    <div className="fixed inset-0 flex items-center justify-center bg-black/50 z-50 transition-opacity duration-300">
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 w-11/12 max-w-md transform transition-transform duration-300 scale-100">
         <h3 className="text-xl font-semibold mb-4">{title}</h3>
         

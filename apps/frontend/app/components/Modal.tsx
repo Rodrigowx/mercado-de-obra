@@ -18,8 +18,8 @@ export function Modal({ isOpen, onClose, children }: ModalProps) {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-30 z-50 flex items-center justify-center">
-      <div className="bg-white dark:bg-gray-800 p-4 rounded w-[90%] max-w-xl relative shadow-lg">
+    <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center">
+      <div className="bg-white dark:bg-gray-800 p-4 rounded-sm w-[90%] max-w-xl relative shadow-lg">
         {/* Botão de Fechar */}
         <button
           onClick={onClose}

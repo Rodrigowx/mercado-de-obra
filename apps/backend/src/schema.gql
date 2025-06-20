@@ -92,7 +92,14 @@ type BudgetService {
   quantity: Float!
   createdAt: DateTime
   updatedAt: DateTime
+  needsMaterials: Boolean
+  materialsJson: JSON
 }
+
+"""
+The `JSON` scalar type represents JSON values as specified by [ECMA-404](http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf).
+"""
+scalar JSON
 
 type Budget {
   id: Int!
@@ -110,8 +117,22 @@ type Budget {
   materialCost: Float
   totalCost: Float
   serviceDetails: String
-  createdAt: DateTime!
-  updatedAt: DateTime!
+  createdAt: DateTime
+  updatedAt: DateTime
+  obraTitle: String
+  obraAddress: String
+  obraRules: [String!]
+  precisaAjudante: Boolean
+  valorDiariaAjudante: Float
+  qtdAjudantes: Int
+  valorAlimentacao: Float
+  valorTransporte: Float
+  margemLucro: Float
+  plannedStartDate: String
+  plannedEndDate: String
+  paymentDates: [String!]
+  paymentFrequency: String
+  initialPaymentDate: String
   budgetServices: [BudgetService!]
 }
 
@@ -249,9 +270,23 @@ input CreateBudgetInput {
   needId: Int!
   clientId: Int!
   professionalId: Int!
-  description: String!
-  totalCost: Float!
-  budgetServices: [CreateBudgetServiceInput!]!
+  description: String
+  totalCost: Float
+  budgetServices: [CreateBudgetServiceInput!]
+  obraTitle: String
+  obraAddress: String
+  obraRules: [String!]
+  precisaAjudante: Boolean
+  valorDiariaAjudante: Float
+  qtdAjudantes: Int
+  valorAlimentacao: Float
+  valorTransporte: Float
+  margemLucro: Float
+  plannedStartDate: String
+  plannedEndDate: String
+  paymentDates: [String!]
+  paymentFrequency: String
+  initialPaymentDate: String
 }
 
 input CreateBudgetServiceInput {
@@ -259,6 +294,8 @@ input CreateBudgetServiceInput {
   task: String!
   serviceValue: Float!
   quantity: Float!
+  needsMaterials: Boolean
+  materialsJson: JSON
 }
 
 input UpdateBudgetInput {
@@ -268,7 +305,28 @@ input UpdateBudgetInput {
   plannedStartDate: String
   plannedEndDate: String
   recommendedInstallments: Int
-  budgetServices: [CreateBudgetServiceInput!]
+  budgetServices: [UpdateBudgetServiceInput!]
+  obraTitle: String
+  obraAddress: String
+  obraRules: [String!]
+  precisaAjudante: Boolean
+  valorDiariaAjudante: Float
+  qtdAjudantes: Int
+  valorAlimentacao: Float
+  valorTransporte: Float
+  margemLucro: Float
+  paymentDates: [String!]
+  paymentFrequency: String
+  initialPaymentDate: String
+}
+
+input UpdateBudgetServiceInput {
+  unitOfMeasurementId: Int!
+  task: String!
+  serviceValue: Float!
+  quantity: Float!
+  needsMaterials: Boolean
+  materialsJson: JSON
 }
 
 input LoginUserDto {

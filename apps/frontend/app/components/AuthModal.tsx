@@ -332,10 +332,10 @@ const AuthModal: React.FC<AuthModalProps> = ({ mode: initialMode, onClose }) => 
   };
   
   return (
-    <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+    <div className="fixed inset-0 flex items-center justify-center bg-black/50 z-50">
       <div className="bg-white dark:bg-gray-800 p-8 rounded-lg shadow-lg w-full max-w-md relative overflow-auto max-h-screen">
         {loading && (
-          <div className="absolute inset-0 z-10 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="absolute inset-0 z-10 flex items-center justify-center bg-black/50">
             <FaSpinner className="animate-spin text-white text-4xl" />
           </div>
         )}
@@ -457,7 +457,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ mode: initialMode, onClose }) => 
                       onChange={() => setRole(role === "CLIENT" ? "PROFESSIONAL" : "CLIENT")}
                       className="sr-only peer"
                     />
-                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-primary rounded-full peer dark:bg-gray-700 peer-checked:bg-primary transition duration-300 before:absolute before:top-1 before:left-1 before:bg-white before:rounded-full before:h-4 before:w-4 before:transition-transform peer-checked:before:translate-x-5"></div>
+                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-hidden peer-focus:ring-2 peer-focus:ring-primary rounded-full peer dark:bg-gray-700 peer-checked:bg-primary transition duration-300 before:absolute before:top-1 before:left-1 before:bg-white before:rounded-full before:h-4 before:w-4 before:transition-transform peer-checked:before:translate-x-5"></div>
                   </label>
                   <span className={`text-sm ${role === "PROFESSIONAL" ? "text-primary" : "text-gray-500"}`}>
                     Profissional
@@ -507,7 +507,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ mode: initialMode, onClose }) => 
                       onChange={() => setRole(role === "CLIENT" ? "PROFESSIONAL" : "CLIENT")}
                       className="sr-only peer"
                     />
-                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-primary rounded-full peer dark:bg-gray-700 peer-checked:bg-primary transition duration-300 before:absolute before:top-1 before:left-1 before:bg-white before:rounded-full before:h-4 before:w-4 before:transition-transform peer-checked:before:translate-x-5"></div>
+                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-hidden peer-focus:ring-2 peer-focus:ring-primary rounded-full peer dark:bg-gray-700 peer-checked:bg-primary transition duration-300 before:absolute before:top-1 before:left-1 before:bg-white before:rounded-full before:h-4 before:w-4 before:transition-transform peer-checked:before:translate-x-5"></div>
                   </label>
                   <span className={`text-sm ${role === "PROFESSIONAL" ? "text-primary" : "text-gray-500"}`}>
                     Profissional

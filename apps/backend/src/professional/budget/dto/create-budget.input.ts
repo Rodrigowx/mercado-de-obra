@@ -13,12 +13,54 @@ export class CreateBudgetInput {
   @Field(() => Int)
   professionalId: number;
 
-  @Field(() => String)
+  @Field(() => String, { nullable: true })
   description?: string;
 
-  @Field(() => Float)
+  @Field(() => Float, { nullable: true })
   totalCost?: number;
 
-  @Field(() => [CreateBudgetServiceInput])
+  @Field(() => [CreateBudgetServiceInput], { nullable: true })
   budgetServices?: CreateBudgetServiceInput[];
+
+  @Field(() => String, { nullable: true })
+  obraTitle?: string;
+
+  @Field(() => String, { nullable: true })
+  obraAddress?: string;
+
+  @Field(() => [String], { nullable: true })
+  obraRules?: string[];
+
+  @Field(() => Boolean, { nullable: true })
+  precisaAjudante?: boolean;
+
+  @Field(() => Float, { nullable: true })
+  valorDiariaAjudante?: number;
+
+  @Field(() => Int, { nullable: true })
+  qtdAjudantes?: number;
+
+  @Field(() => Float, { nullable: true })
+  valorAlimentacao?: number;
+
+  @Field(() => Float, { nullable: true })
+  valorTransporte?: number;
+
+  @Field(() => Float, { nullable: true })
+  margemLucro?: number;
+
+  @Field(() => String, { nullable: true })
+  plannedStartDate?: string;
+
+  @Field(() => String, { nullable: true })
+  plannedEndDate?: string;
+
+  @Field(() => [String], { nullable: true })
+  paymentDates?: string[];
+
+  @Field(() => String, { nullable: true })
+  paymentFrequency?: string;
+
+  @Field(() => String, { nullable: true })
+  initialPaymentDate?: string;
 }
